@@ -3,6 +3,41 @@
 import { useEffect, useMemo, useState } from "react";
 import { useHub } from "../shared/hub-context";
 import { sha256Sync } from "../shared/sha256";
+import {
+  getMerkleProof,
+  verifyMerkleProof,
+} from "../shared/blockchain";
+
+const PROOF_STR = {
+  vi: {
+    title: "Chứng minh Merkle (Merkle Proof)",
+    desc: "Chọn một giao dịch để sinh proof — dãy hash anh em theo từng tầng. Người xác minh chỉ cần leaf + proof là tính lại được Root, không cần toàn bộ cây.",
+    select: "Chọn giao dịch",
+    leaf: "Leaf (SHA-256 của Tx)",
+    verify: "Xác minh Proof",
+    valid: "Proof HỢP LỆ — Tx thuộc về Merkle Root này",
+    invalid: "Proof KHÔNG hợp lệ",
+    left: "TRÁI",
+    right: "PHẢI",
+    dup: "nhân đôi",
+    computedRoot: "Root tính lại từ Proof",
+    expectedRoot: "Root kỳ vọng",
+  },
+  en: {
+    title: "Merkle Proof",
+    desc: "Pick a transaction to generate its proof — the sibling hashes level by level. A verifier only needs the leaf + proof to recompute the Root, without the whole tree.",
+    select: "Select transaction",
+    leaf: "Leaf (SHA-256 of Tx)",
+    verify: "Verify Proof",
+    valid: "Proof VALID — this Tx belongs to the Merkle Root",
+    invalid: "Proof INVALID",
+    left: "LEFT",
+    right: "RIGHT",
+    dup: "duplicated",
+    computedRoot: "Root recomputed from Proof",
+    expectedRoot: "Expected Root",
+  },
+};
 
 interface MerkleNode {
   id: string;
@@ -64,10 +99,36 @@ export function MerkleTab() {
   const [zoom, setZoom] = useState(1);
   const [selected, setSelected] = useState<MerkleNode | null>(null);
   const [error, setError] = useState("");
+  const [proofIdx, setProofIdx] = useState(0);
+  const [proofOk, setProofOk] = useState<boolean | null>(null);
+  const ps = PROOF_STR[lang];
   const tree = useMemo(
     () => (built && txs.length > 0 ? buildMerkleTree(txs) : null),
     [built, txs]
   );
+
+  const proofLevels = useMemo(
+    () => tree?.levels.map((l) => l.map((n) => n.hash)) ?? [],
+    [tree]
+  );
+  const proofTxIdx = Math.min(proofIdx, txs.length - 1);
+  const proof = useMemo(
+    () =>
+      proofLevels.length > 1
+        ? getMerkleProof(proofLevels, Math.max(0, proofTxIdx))
+        : [],
+    [proofLevels, proofTxIdx]
+  );
+  const proofLeaf = proofLevels[0]?.[Math.max(0, proofTxIdx)] ?? "";
+  const proofComputedRoot = useMemo(() => {
+    let cur = proofLeaf;
+    for (const st of proof) {
+      cur = st.siblingIsLeft
+        ? sha256Sync(st.sibling + cur)
+        : sha256Sync(cur + st.sibling);
+    }
+    return cur;
+  }, [proofLeaf, proof]);
 
   // Localize default transactions on first mount + language switch (until user edits)
   useEffect(() => {
@@ -86,6 +147,7 @@ export function MerkleTab() {
   const updateTx = (i: number, v: string) => {
     setTxs((p) => p.map((x, j) => (j === i ? v : x)));
     setBuilt(false);
+    setProofOk(null);
   };
   const addTx = () => {
     if (txs.length >= 16) {
@@ -95,6 +157,7 @@ export function MerkleTab() {
     setError("");
     setTxs((p) => [...p, `Tx ${p.length + 1}`]);
     setBuilt(false);
+    setProofOk(null);
   };
   const removeTx = (i: number) => {
     if (txs.length <= 1) {
@@ -105,6 +168,7 @@ export function MerkleTab() {
     setTxs((p) => p.filter((_, j) => j !== i));
     setBuilt(false);
     setSelected(null);
+    setProofOk(null);
   };
 
   const maxNodes = Math.max(1, ...(tree?.levels ?? []).map((l) => l.length));
@@ -233,6 +297,7 @@ export function MerkleTab() {
               }
               setError("");
               setSelected(null);
+              setProofOk(null);
               setBuilt(true);
             }}
           >
@@ -487,6 +552,119 @@ export function MerkleTab() {
           )}
         </div>
       </div>
+
+      {tree && (
+        <div className="card" style={{ marginTop: 20 }}>
+          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>
+            🔍 {ps.title}
+          </h3>
+          <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 16, lineHeight: 1.8 }}>
+            {ps.desc}
+          </p>
+          <div className="label">{ps.select}</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            {txs.map((tx, i) => (
+              <button
+                key={i}
+                className={`btn btn-sm ${proofTxIdx === i ? "btn-primary" : "btn-ghost"}`}
+                onClick={() => {
+                  setProofIdx(i);
+                  setProofOk(null);
+                }}
+              >
+                #{i + 1} {tx.length > 14 ? `${tx.slice(0, 14)}…` : tx}
+              </button>
+            ))}
+          </div>
+          <div className="label">{ps.leaf}</div>
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 12,
+              color: "var(--green)",
+              wordBreak: "break-all",
+              marginBottom: 12,
+            }}
+          >
+            {proofLeaf}
+          </div>
+          <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+            {proof.map((st, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: "var(--bg1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  fontSize: 12,
+                }}
+              >
+                <span
+                  className="badge"
+                  style={{
+                    fontSize: 10,
+                    background: st.siblingIsLeft
+                      ? "rgba(56,189,248,0.15)"
+                      : "rgba(192,132,252,0.15)",
+                    color: st.siblingIsLeft ? "var(--green)" : "var(--cyan)",
+                  }}
+                >
+                  {st.siblingIsLeft ? ps.left : ps.right}
+                  {st.duplicated ? ` (${ps.dup})` : ""}
+                </span>
+                <span style={{ fontFamily: "var(--mono)", color: "var(--text2)" }}>
+                  {st.sibling.slice(0, 28)}...
+                </span>
+              </div>
+            ))}
+          </div>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() =>
+              setProofOk(
+                verifyMerkleProof(proofLeaf, proof, tree.root)
+              )
+            }
+          >
+            {ps.verify}
+          </button>
+          {proofOk !== null && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: 12,
+                borderRadius: 10,
+                border: `1px solid ${proofOk ? "var(--green)" : "var(--red)"}`,
+                background: proofOk
+                  ? "rgba(56,189,248,0.08)"
+                  : "rgba(251,113,133,0.08)",
+                fontSize: 13,
+              }}
+            >
+              <strong style={{ color: proofOk ? "var(--green)" : "var(--red)" }}>
+                {proofOk ? `✓ ${ps.valid}` : `✗ ${ps.invalid}`}
+              </strong>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 11,
+                  marginTop: 8,
+                  wordBreak: "break-all",
+                }}
+              >
+                <div style={{ color: "var(--text3)" }}>{ps.computedRoot}:</div>
+                <div style={{ color: "var(--cyan)" }}>{proofComputedRoot}</div>
+                <div style={{ color: "var(--text3)", marginTop: 4 }}>{ps.expectedRoot}:</div>
+                <div style={{ color: "var(--amber)" }}>{tree.root}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

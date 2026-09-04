@@ -11,20 +11,12 @@ import {
 } from "react";
 import { dict, type Lang } from "./dict";
 
-export type TabId =
-  | "home"
-  | "demo"
-  | "mining"
-  | "rsa"
-  | "about";
+export type TabId = "home" | "demo" | "mining" | "rsa";
 
 interface HubState {
   tab: TabId;
   setTab: (t: TabId) => void;
   lang: Lang;
-  setLang: (l: Lang) => void;
-  theme: "dark" | "light";
-  toggleTheme: () => void;
   t: (path: string) => string;
 }
 
@@ -45,12 +37,12 @@ function getPath(lang: Lang, path: string): string {
 
 export function HubProvider({ children }: { children: ReactNode }) {
   const [tab, setTabState] = useState<TabId>("home");
-  const [lang, setLang] = useState<Lang>("vi");
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  // Mặc định tiếng Việt (đã bỏ toggle ngôn ngữ), giao diện sáng (đã bỏ toggle theme)
+  const lang: Lang = "vi";
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+    document.documentElement.setAttribute("data-theme", "light");
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("lang", lang);
@@ -68,13 +60,9 @@ export function HubProvider({ children }: { children: ReactNode }) {
       tab,
       setTab,
       lang,
-      setLang,
-      theme,
-      toggleTheme: () =>
-        setTheme((p) => (p === "dark" ? "light" : "dark")),
       t,
     }),
-    [tab, setTab, lang, theme, t]
+    [tab, setTab, lang, t]
   );
 
   return <HubContext.Provider value={value}>{children}</HubContext.Provider>;

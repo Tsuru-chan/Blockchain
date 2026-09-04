@@ -1,103 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useHub } from "../shared/hub-context";
 import { sha256Sync } from "../shared/sha256";
 
-type MiningTab = "edu" | "diff" | "sim" | "explorer";
+type MiningTab = "diff" | "sim" | "explorer" | "mempool" | "network";
 
 const ATTEMPTS = ["~16", "~256", "~4,096", "~65,536", "~1,048,576"];
-
-function TheoryTab() {
-  const { t } = useHub();
-  return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div className="mining-section-header">
-        <div className="mining-section-suptitle text-cyan">{t("mining.kb")}</div>
-        <h2 className="mining-section-title">{t("mining.theoryTitle")}</h2>
-      </div>
-      <div style={{ display: "grid", gap: 16 }}>
-        <div className="card">
-          <div className="label">
-            {t("mining.concept")} 01
-          </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>
-            {t("mining.concept1Title")}
-          </h3>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8 }}>
-            {t("mining.concept1P1")}
-          </p>
-          <div className="edu-code-block">
-            SHA256(index + timestamp + data + prevHash + nonce)
-            <br />→ &quot;000abc91f...&quot; ✓ {t("mining.concept1Valid")}
-          </div>
-        </div>
-        <div className="card">
-          <div className="label">
-            {t("mining.concept")} 02
-          </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>
-            {t("mining.concept2Title")}
-          </h3>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8 }}>
-            {t("mining.concept2P1")}
-          </p>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8, marginTop: 8 }}>
-            {t("mining.concept2P2")}
-          </p>
-        </div>
-        <div className="card">
-          <div className="label">
-            {t("mining.concept")} 03
-          </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>
-            {t("mining.concept3Title")}
-          </h3>
-          <div className="diff-target-list">
-            {[1, 2, 3, 4, 5].map((d) => (
-              <div key={d} className="diff-target-row">
-                <span className="diff-target-icon">Diff = {d}</span>
-                <span className="diff-target-hash">{"0".repeat(d)}xxxxxxxxxx</span>
-                <span className="diff-target-attempts">
-                  <span className="diff-target-attempts-val">{ATTEMPTS[d - 1]}</span>{" "}
-                  <span className="diff-target-attempts-label">{t("mining.attempts")}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="card">
-          <div className="label">
-            {t("mining.concept")} 04
-          </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>
-            {t("mining.concept4Title")}
-          </h3>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8 }}>
-            {t("mining.concept4P1")}
-          </p>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8, marginTop: 8 }}>
-            {t("mining.concept4P2")}
-          </p>
-        </div>
-        <div className="card">
-          <div className="label">
-            {t("mining.concept")} 05
-          </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>
-            {t("mining.concept5Title")}
-          </h3>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8 }}>
-            {t("mining.concept5P1")}
-          </p>
-          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8, marginTop: 8 }}>
-            {t("mining.concept5P2")}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function DifficultyTab({ diff, setDiff }: { diff: number; setDiff: (d: number) => void }) {
   const { t } = useHub();
@@ -345,94 +254,141 @@ function SimulatorTab({ diff }: { diff: number }) {
   );
 }
 
-interface ChainBlock {
-  index: number;
-  time: string;
-  data: string;
-  nonce: number;
-  hash: string;
-  prevHash: string;
+import { MempoolTab } from "./MempoolTab";
+import { NetworkTab } from "./NetworkTab";
+import {
+  blockHash,
+  merkleRootSync,
+  type BlockHeader,
+} from "../shared/blockchain";
+
+interface BlockTx {
+  from: string;
+  to: string;
+  amount: number;
 }
 
-function mineBlock(
+/** P6 full block: header + body (transaction list). */
+interface FullBlock {
+  index: number;
+  header: BlockHeader;
+  txs: BlockTx[];
+  hash: string;
+}
+
+const EXPL_STR = {
+  vi: {
+    version: "Phiên bản",
+    transactions: "Giao dịch",
+    merkleRoot: "Merkle Root",
+    difficulty: "Độ khó",
+    coinbase: "Khối khởi tạo",
+  },
+  en: {
+    version: "Version",
+    transactions: "Transactions",
+    merkleRoot: "Merkle Root",
+    difficulty: "Difficulty",
+    coinbase: "Genesis block",
+  },
+};
+
+function blockTxId(tx: BlockTx): string {
+  return sha256Sync(`${tx.from}|${tx.to}|${tx.amount}`);
+}
+
+const DEMO_NAMES = ["Alice", "Bob", "Carol", "Dave", "Eve"];
+
+function randomTxs(count: number): BlockTx[] {
+  const txs: BlockTx[] = [];
+  for (let i = 0; i < count; i++) {
+    const from = DEMO_NAMES[Math.floor(Math.random() * DEMO_NAMES.length)];
+    let to = DEMO_NAMES[Math.floor(Math.random() * DEMO_NAMES.length)];
+    if (to === from) to = "Network";
+    txs.push({ from, to, amount: 1 + Math.floor(Math.random() * 50) });
+  }
+  return txs;
+}
+
+function mineFullBlock(
   index: number,
-  data: string,
   prevHash: string,
+  txs: BlockTx[],
   difficulty: number
-): ChainBlock {
-  let nonce = 0;
+): FullBlock {
+  const header: BlockHeader = {
+    version: 1,
+    previousHash: prevHash,
+    merkleRoot: merkleRootSync(txs.map(blockTxId)),
+    timestamp: Date.now(),
+    difficulty,
+    nonce: 0,
+  };
   const target = "0".repeat(difficulty);
   for (;;) {
-    const hash = sha256Sync(`${index}${data}${prevHash}${nonce}`);
-    if (hash.startsWith(target)) {
-      return {
-        index,
-        time: new Date().toLocaleTimeString(),
-        data,
-        nonce,
-        hash,
-        prevHash,
-      };
-    }
-    nonce++;
-    if (nonce > 5000000) {
-      return { index, time: new Date().toLocaleTimeString(), data, nonce, hash, prevHash };
-    }
+    const hash = blockHash(header);
+    if (hash.startsWith(target)) return { index, header, txs, hash };
+    header.nonce++;
+    if (header.nonce > 5000000) return { index, header, txs, hash };
   }
 }
 
-function validateChain(chain: ChainBlock[], difficulty: number): boolean {
-  const target = "0".repeat(difficulty);
+function validateFullChain(chain: FullBlock[]): boolean {
   for (let i = 0; i < chain.length; i++) {
     const b = chain[i];
-    const recomputed = sha256Sync(`${b.index}${b.data}${b.prevHash}${b.nonce}`);
-    if (recomputed !== b.hash || !b.hash.startsWith(target)) return false;
-    if (i > 0 && b.prevHash !== chain[i - 1].hash) return false;
+    if (merkleRootSync(b.txs.map(blockTxId)) !== b.header.merkleRoot)
+      return false;
+    if (blockHash(b.header) !== b.hash) return false;
+    if (!b.hash.startsWith("0".repeat(b.header.difficulty))) return false;
+    if (i > 0 && b.header.previousHash !== chain[i - 1].hash) return false;
   }
   return true;
 }
 
 function ExplorerTab() {
-  const { t } = useHub();
+  const { t, lang } = useHub();
+  const ex = EXPL_STR[lang];
   const EXPL_DIFF = 2;
-  const [chain, setChain] = useState<ChainBlock[]>(() => [
-    mineBlock(0, "Genesis Block — HubBlock", "0000000000", EXPL_DIFF),
+  const [chain, setChain] = useState<FullBlock[]>(() => [
+    mineFullBlock(0, "0".repeat(64), [{ from: "Network", to: "Alice", amount: 50 }], EXPL_DIFF),
   ]);
   const [tamperIdx, setTamperIdx] = useState<number | null>(null);
-  const [fakeData, setFakeData] = useState("");
-  const valid = useMemo(() => validateChain(chain, EXPL_DIFF), [chain]);
+  const [tamperTxs, setTamperTxs] = useState<BlockTx[]>([]);
+  const valid = useMemo(() => validateFullChain(chain), [chain]);
 
   const addBlock = () => {
     const prev = chain[chain.length - 1];
-    const nb = mineBlock(
+    const nb = mineFullBlock(
       prev.index + 1,
-      `Block data #${prev.index + 1}`,
       prev.hash,
+      randomTxs(1 + Math.floor(Math.random() * 3)),
       EXPL_DIFF
     );
     setChain((c) => [...c, nb]);
   };
 
   const reset = () => {
-    setChain([mineBlock(0, "Genesis Block — HubBlock", "0000000000", EXPL_DIFF)]);
+    setChain([
+      mineFullBlock(0, "0".repeat(64), [{ from: "Network", to: "Alice", amount: 50 }], EXPL_DIFF),
+    ]);
     setTamperIdx(null);
   };
 
   const submitTamper = () => {
     if (tamperIdx === null) return;
     setChain((c) =>
-      c.map((b, i) => (i === tamperIdx ? { ...b, data: fakeData || b.data } : b))
+      c.map((b, i) => (i === tamperIdx ? { ...b, txs: tamperTxs } : b))
     );
     setTamperIdx(null);
-    setFakeData("");
+    setTamperTxs([]);
   };
 
   const restore = (idx: number) => {
     setChain((c) => {
       const next = [...c];
       for (let i = idx; i < next.length; i++) {
-        const prevHash = i === 0 ? "0000000000" : next[i - 1].hash;
-        next[i] = mineBlock(next[i].index, next[i].data, prevHash, EXPL_DIFF);
+        const prevHash = i === 0 ? "0".repeat(64) : next[i - 1].hash;
+        next[i] = mineFullBlock(next[i].index, prevHash, next[i].txs, EXPL_DIFF);
       }
       return next;
     });
@@ -463,9 +419,10 @@ function ExplorerTab() {
         <div className="chain-track">
           {chain.map((b, i) => {
             const ok =
-              sha256Sync(`${b.index}${b.data}${b.prevHash}${b.nonce}`) === b.hash &&
-              b.hash.startsWith("0".repeat(EXPL_DIFF)) &&
-              (i === 0 || b.prevHash === chain[i - 1].hash);
+              merkleRootSync(b.txs.map(blockTxId)) === b.header.merkleRoot &&
+              blockHash(b.header) === b.hash &&
+              b.hash.startsWith("0".repeat(b.header.difficulty)) &&
+              (i === 0 || b.header.previousHash === chain[i - 1].hash);
             return (
               <div key={`${b.index}-${i}`}>
                 <div className={`card anim-border block-card ${ok ? "" : "invalid"}`}>
@@ -478,18 +435,41 @@ function ExplorerTab() {
                     <span className={`block-status-dot ${ok ? "" : "invalid"}`}></span>
                   </div>
                   <div className="block-field">
-                    <span className="block-field-label">{t("mining.timeStr")}</span>
-                    <span className="block-field-value">{b.time}</span>
+                    <span className="block-field-label">{ex.version}</span>
+                    <span className="block-field-value">v{b.header.version}</span>
                   </div>
                   <div className="block-field">
-                    <span className="block-field-label">{t("mining.dataStr")}</span>
+                    <span className="block-field-label">{t("mining.timeStr")}</span>
                     <span className="block-field-value">
-                      {b.data.length > 22 ? `${b.data.slice(0, 22)}...` : b.data}
+                      {new Date(b.header.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
                   <div className="block-field">
-                    <span className="block-field-label">{t("mining.nonceStr")}</span>
-                    <span className="block-field-value">{b.nonce.toLocaleString()}</span>
+                    <span className="block-field-label">
+                      {ex.transactions} ({b.txs.length})
+                    </span>
+                    <span
+                      className="block-field-value"
+                      style={{ fontFamily: "var(--mono)", fontSize: 11 }}
+                    >
+                      {b.txs.map((tx, ti) => (
+                        <span key={ti} style={{ display: "block" }}>
+                          {tx.from} → {tx.to}: {tx.amount}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                  <div className="block-field">
+                    <span className="block-field-label">{ex.merkleRoot}</span>
+                    <span className="block-field-value">
+                      {b.header.merkleRoot.slice(0, 10)}...
+                    </span>
+                  </div>
+                  <div className="block-field">
+                    <span className="block-field-label">
+                      {t("mining.nonceStr")} · {ex.difficulty} {b.header.difficulty}
+                    </span>
+                    <span className="block-field-value">{b.header.nonce.toLocaleString()}</span>
                   </div>
                   <div className="block-field">
                     <span className="block-field-label">{t("mining.hashStr")}</span>
@@ -497,14 +477,14 @@ function ExplorerTab() {
                   </div>
                   <div className="block-field">
                     <span className="block-field-label">{t("mining.prevHashStr")}</span>
-                    <span className="block-field-value">{b.prevHash.slice(0, 10)}...</span>
+                    <span className="block-field-value">{b.header.previousHash.slice(0, 10)}...</span>
                   </div>
                   <div className="block-actions">
                     <button
                       className="btn btn-ghost btn-sm block-btn"
                       onClick={() => {
                         setTamperIdx(i);
-                        setFakeData(b.data);
+                        setTamperTxs(b.txs.map((tx) => ({ ...tx })));
                       }}
                     >
                       {t("mining.tamperBtn")}
@@ -534,13 +514,29 @@ function ExplorerTab() {
           <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 12 }}>
             {t("mining.tamperDesc")}
           </p>
-          <input
-            className="inp"
-            placeholder={t("mining.fakeDataPlaceholder")}
-            value={fakeData}
-            onChange={(e) => setFakeData(e.target.value)}
-            style={{ marginBottom: 12 }}
-          />
+          <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+            {tamperTxs.map((tx, ti) => (
+              <div key={ti} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "var(--text2)", flex: 1 }}>
+                  {tx.from} → {tx.to}
+                </span>
+                <input
+                  className="inp"
+                  type="number"
+                  min={0}
+                  value={tx.amount}
+                  onChange={(e) =>
+                    setTamperTxs((p) =>
+                      p.map((x, j) =>
+                        j === ti ? { ...x, amount: Number(e.target.value) } : x
+                      )
+                    )
+                  }
+                  style={{ width: 110, padding: "8px 12px" }}
+                />
+              </div>
+            ))}
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-primary btn-sm btn-tamper-submit" onClick={submitTamper}>
               {t("mining.tamperBlock")}
@@ -559,29 +555,35 @@ function ExplorerTab() {
 }
 
 export function MiningView() {
-  const { t } = useHub();
-  const [tab, setTab] = useState<MiningTab>("edu");
+  const { t, lang } = useHub();
+  const [tab, setTab] = useState<MiningTab>("sim");
   const [diff, setDiff] = useState(3);
+  const tabLabel = (id: MiningTab) => {
+    if (id === "mempool") return "Mempool";
+    if (id === "network") return lang === "vi" ? "Mạng lưới" : "Network";
+    return t(`mining.tabs.${id}`);
+  };
   return (
     <>
       <div className="mining-tab-bar-container">
         <div className="tab-bar-scroll mining-tab-bar">
-          {(["edu", "diff", "sim", "explorer"] as MiningTab[]).map((id) => (
+          {(["diff", "sim", "explorer", "mempool", "network"] as MiningTab[]).map((id) => (
             <button
               key={id}
               className={`mining-tab-btn ${tab === id ? "active" : ""}`}
               onClick={() => setTab(id)}
             >
-              {t(`mining.tabs.${id}`)}
+              {tabLabel(id)}
             </button>
           ))}
         </div>
       </div>
       <div className="section" style={{ paddingTop: 40 }}>
-        {tab === "edu" && <TheoryTab />}
         {tab === "diff" && <DifficultyTab diff={diff} setDiff={setDiff} />}
         {tab === "sim" && <SimulatorTab diff={diff} />}
         {tab === "explorer" && <ExplorerTab />}
+        {tab === "mempool" && <MempoolTab />}
+        {tab === "network" && <NetworkTab />}
       </div>
     </>
   );

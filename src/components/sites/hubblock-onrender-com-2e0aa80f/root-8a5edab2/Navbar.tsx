@@ -3,17 +3,12 @@
 import { useState } from "react";
 import { useHub, type TabId } from "../shared/hub-context";
 
-const TABS: TabId[] = ["home", "demo", "mining", "rsa", "about"];
-const ASSET = "/sites/hubblock-onrender-com-2e0aa80f/shared/logo_hubblock.png";
+const TABS: TabId[] = ["home", "demo", "mining", "rsa"];
 
 export function Navbar() {
   const {
     tab,
     setTab,
-    lang,
-    setLang,
-    theme,
-    toggleTheme,
     t,
   } = useHub();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -31,20 +26,9 @@ export function Navbar() {
           style={{ cursor: "pointer" }}
           onClick={() => go("home")}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={ASSET}
-            alt="HubBlock"
-            style={{
-              height: 32,
-              width: 32,
-              borderRadius: 8,
-              objectFit: "contain",
-            }}
-          />
-          <div>
-            <span className="nav-logo-text">HubBlock</span>
-          </div>
+          <span style={{ fontWeight: 800, fontSize: 18, color: "var(--text)" }}>
+            Blockchain
+          </span>
         </a>
         <ul className="nav-links">
           {TABS.map((id) => (
@@ -58,22 +42,6 @@ export function Navbar() {
             </li>
           ))}
         </ul>
-        <div className="nav-toggles-container">
-          <button
-            className="btn btn-ghost btn-sm nav-toggle-btn"
-            title={lang === "vi" ? "Switch to English" : "Chuyển sang tiếng Việt"}
-            onClick={() => setLang(lang === "vi" ? "en" : "vi")}
-          >
-            {lang === "vi" ? "🇬🇧 EN" : "🇻🇳 VI"}
-          </button>
-          <button
-            className="btn btn-ghost btn-sm nav-toggle-btn"
-            title={theme === "dark" ? "Light mode" : "Dark mode"}
-            onClick={toggleTheme}
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-        </div>
         <button
           className="nav-hamburger"
           aria-label="Toggle menu"
@@ -104,20 +72,6 @@ export function Navbar() {
             {t(`nav.${id}`)}
           </button>
         ))}
-        <div className="nav-mobile-toggles">
-          <button
-            className="btn btn-ghost btn-sm nav-mobile-toggle-btn"
-            onClick={() => setLang(lang === "vi" ? "en" : "vi")}
-          >
-            {lang === "vi" ? "🇬🇧 English" : "🇻🇳 Tiếng Việt"}
-          </button>
-          <button
-            className="btn btn-ghost btn-sm nav-mobile-toggle-btn"
-            onClick={toggleTheme}
-          >
-            {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-          </button>
-        </div>
       </div>
     </nav>
   );

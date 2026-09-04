@@ -8,14 +8,20 @@ import {
   sha256Sync,
 } from "../shared/sha256";
 import { MerkleTab } from "./MerkleTab";
+import { BruteForceTab } from "./BruteForceTab";
 
-type DemoTab = "interactive" | "fixed" | "avalanche" | "explain" | "merkle";
+type DemoTab =
+  | "interactive"
+  | "fixed"
+  | "avalanche"
+  | "bruteforce"
+  | "merkle";
 
 const TAB_ORDER: DemoTab[] = [
   "interactive",
   "fixed",
   "avalanche",
-  "explain",
+  "bruteforce",
   "merkle",
 ];
 
@@ -393,72 +399,14 @@ function AvalancheTab() {
   );
 }
 
-function ExplainTab() {
-  const { t } = useHub();
-  const cards = [
-    {
-      icon: "🔐",
-      title: t("demo.expl1Title"),
-      body: [t("demo.expl1P1")],
-      code: [
-        'SHA256("Hello") → 185f8db32921bd46d35c4f64...',
-        `SHA256("1 TB file") → ${t("demo.expl1P2")}`,
-      ],
-    },
-    {
-      icon: "📏",
-      title: t("demo.expl2Title"),
-      body: [t("demo.expl2P1"), t("demo.expl2P2")],
-      code: [] as string[],
-    },
-    {
-      icon: "⛔",
-      title: t("demo.expl3Title"),
-      body: [t("demo.expl3P1"), t("demo.expl3P2")],
-      code: [] as string[],
-    },
-    {
-      icon: "🌊",
-      title: t("demo.expl4Title"),
-      body: [t("demo.expl4P1")],
-      code: [
-        `SHA256("hello") = ${sha256Sync("hello").slice(0, 12)}...`,
-        `SHA256("hellp") = ${sha256Sync("hellp").slice(0, 12)}... ${t("demo.expl4P2")}`,
-      ],
-    },
-  ];
-  return (
-    <div style={{ animation: "fadeIn 0.3s ease", display: "grid", gap: 16 }}>
-      {cards.map((c, i) => (
-        <div key={i} className="card edu-card">
-          <div className="edu-card-label">
-            {c.icon} {String(i + 1).padStart(2, "0")}
-          </div>
-          <div className="edu-card-title">{c.title}</div>
-          <div className="edu-card-body">
-            {c.body.map((p, j) => (
-              <p
-                key={j}
-                style={{ marginBottom: j < c.body.length - 1 ? 10 : 0 }}
-              >
-                {p}
-              </p>
-            ))}
-            {c.code.map((line, j) => (
-              <div key={j} className="edu-code-block">
-                {line}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export function HashDemoView() {
-  const { t } = useHub();
+  const { t, lang } = useHub();
   const [tab, setTab] = useState<DemoTab>("interactive");
+  const tabLabel = (id: DemoTab) => {
+    if (id === "merkle") return t("nav.merkleTab");
+    if (id === "bruteforce") return lang === "vi" ? "Vét cạn" : "Brute-force";
+    return t(`demo.tabs.${id}`);
+  };
   return (
     <>
       <div className="section" style={{ paddingBottom: 0, paddingTop: 40 }}>
@@ -489,7 +437,7 @@ export function HashDemoView() {
         >
           {TAB_ORDER.map((id) => (
             <TabButton key={id} active={tab === id} onClick={() => setTab(id)}>
-              {id === "merkle" ? t("nav.merkleTab") : t(`demo.tabs.${id}`)}
+              {tabLabel(id)}
             </TabButton>
           ))}
         </div>
@@ -498,7 +446,7 @@ export function HashDemoView() {
         {tab === "interactive" && <InteractiveTab />}
         {tab === "fixed" && <FixedTab />}
         {tab === "avalanche" && <AvalancheTab />}
-        {tab === "explain" && <ExplainTab />}
+        {tab === "bruteforce" && <BruteForceTab />}
         {tab === "merkle" && <MerkleTab />}
       </div>
     </>

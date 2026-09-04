@@ -3,11 +3,10 @@
 import { HubProvider, useHub } from "../components/sites/hubblock-onrender-com-2e0aa80f/shared/hub-context";
 import { ParticleField } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/ParticleField";
 import { Navbar } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/Navbar";
-import { AppFooter, HomeView } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/HomeView";
+import { HomeView } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/HomeView";
 import { HashDemoView } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/HashDemoView";
 import { MiningView } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/MiningView";
 import { RsaView } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/RsaView";
-import { AboutView } from "../components/sites/hubblock-onrender-com-2e0aa80f/root-8a5edab2/AboutView";
 
 function HubBlockPage() {
   const { tab } = useHub();
@@ -20,9 +19,7 @@ function HubBlockPage() {
         {tab === "demo" && <HashDemoView />}
         {tab === "mining" && <MiningView />}
         {tab === "rsa" && <RsaView />}
-        {tab === "about" && <AboutView />}
       </div>
-      <AppFooter />
     </>
   );
 }

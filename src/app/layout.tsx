@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      data-theme="dark"
+      data-theme="light"
       className={`${inter.variable} ${jbMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

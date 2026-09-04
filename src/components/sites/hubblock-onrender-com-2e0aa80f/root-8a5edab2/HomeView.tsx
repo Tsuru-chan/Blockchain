@@ -1,67 +1,77 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useHub } from "../shared/hub-context";
-import { sha256Sync } from "../shared/sha256";
+import type { CSSProperties } from "react";
+import { useHub, type TabId } from "../shared/hub-context";
 
-const STATS: Array<{ val: string; unit: string; labelKey: string }> = [
-  { val: "256", unit: "bits", labelKey: "fixed" },
-  { val: "64", unit: "hex chars", labelKey: "each" },
-  { val: "2²⁵⁶", unit: "combinations", labelKey: "irreversible" },
-  { val: "~50%", unit: "bits changed", labelKey: "avalanche" },
+interface LandingCard {
+  icon: string;
+  title: string;
+  desc: string;
+  tab: TabId;
+  cta: string;
+  glow: string;
+}
+
+const CARDS: LandingCard[] = [
+  {
+    icon: "🔐",
+    title: "P1 · SHA-256 & Hash",
+    desc: "Tính mã băm SHA-256 theo thời gian thực, trực quan hiệu ứng Avalanche, vét cạn mã PIN.",
+    tab: "demo",
+    cta: "Mở mô phỏng Hash",
+    glow: "var(--cyan)",
+  },
+  {
+    icon: "🌳",
+    title: "P5 · Cây Merkle",
+    desc: "Xây cây Merkle từ giao dịch, sinh và xác minh Merkle Proof cho từng Tx.",
+    tab: "demo",
+    cta: "Mở cây Merkle",
+    glow: "var(--green)",
+  },
+  {
+    icon: "⛏️",
+    title: "P2 · P6 · P7 · Khối & PoW",
+    desc: "Chuỗi khối header đầy đủ, giả mạo/khôi phục, mô phỏng đào với độ khó tùy chỉnh.",
+    tab: "mining",
+    cta: "Mở khai thác",
+    glow: "var(--amber)",
+  },
+  {
+    icon: "📥",
+    title: "P4 · Mempool",
+    desc: "Tạo giao dịch ký ECDSA, node verify format/chữ ký/số dư/replay: VALID hoặc REJECT.",
+    tab: "mining",
+    cta: "Mở Mempool",
+    glow: "var(--purple)",
+  },
+  {
+    icon: "🌐",
+    title: "P8 · P9 · Mạng lưới & Đồng thuận",
+    desc: "Cụm 3 full node multi-process: broadcast Tx/Block, mine, longest-chain sync.",
+    tab: "mining",
+    cta: "Mở mạng lưới",
+    glow: "var(--blue)",
+  },
+  {
+    icon: "🔑",
+    title: "P3 · Chữ ký số ECDSA",
+    desc: "Tạo cặp key, ký và xác minh chữ ký số ECDSA P-256 thật ngay trên trình duyệt.",
+    tab: "rsa",
+    cta: "Mở chữ ký số",
+    glow: "var(--cyan)",
+  },
 ];
 
-function useUptime(): string {
-  const [sec, setSec] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setSec((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const h = Math.floor(sec / 3600).toString().padStart(2, "0");
-  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, "0");
-  const s = (sec % 60).toString().padStart(2, "0");
-  return `${h}:${m}:${s}`;
-}
-
-/** Typing animation cycling through a live hash, like the original hero pill. */
-function useTypingHash(source: string): string {
-  const [n, setN] = useState(0);
-  const [prev, setPrev] = useState(source);
-  if (prev !== source) {
-    setPrev(source);
-    setN(0);
-  }
-  useEffect(() => {
-    const id = setInterval(() => {
-      setN((v) => {
-        if (v >= source.length + 30) return 0;
-        return v + 1;
-      });
-    }, 28);
-    return () => clearInterval(id);
-  }, [source]);
-  return source.slice(0, Math.min(n, source.length));
-}
+const STATS = [
+  { val: "9", unit: "chức năng", label: "P1 – P9" },
+  { val: "256", unit: "bits", label: "SHA-256" },
+  { val: "3", unit: "nodes", label: "mạng multi-process" },
+  { val: "100%", unit: "tương tác", label: "chạy trên trình duyệt" },
+];
 
 export function HomeView() {
-  const { t, lang, setTab } = useHub();
-  const uptime = useUptime();
-  const [input, setInput] = useState(
-    lang === "vi" ? "Hello, SVNCKH!" : "Hello, Blockchain!"
-  );
-  const hash = useMemo(() => sha256Sync(input), [input]);
-  const typed = useTypingHash(hash);
-
-  // Property cards live under dict `features` (shared across langs)
-  const feats = useMemo(() => {
-    // read via t() paths features.0.title etc. — fall back to dict import shape
-    return [0, 1, 2, 3].map((i) => ({
-      icon: t(`features.${i}.icon`),
-      title: t(`features.${i}.title`),
-      desc: t(`features.${i}.desc`),
-    }));
-  }, [t]);
-
+  const { setTab } = useHub();
   return (
     <>
       <section className="hero-section">
@@ -71,42 +81,31 @@ export function HomeView() {
           <div className="hero-animate-fade">
             <div className="hero-badge-row">
               <span className="badge badge-cyan hero-badge">
-                {t("home.badge")}
+                SVNCKH 2025 — Nghiên Cứu Khoa Học Sinh Viên
               </span>
-              <div className="digital-clock">
-                <span className="digital-clock-label">{t("home.uptime")}</span>
-                <span className="digital-clock-dot"></span>
-                {uptime}
-              </div>
             </div>
             <h1 className="hero-title">
-              <span className="hero-title-text">{t("home.title1")}</span>
+              <span className="hero-title-text">Blockchain</span>
               <br />
-              <span className="hero-title-sub">{t("home.title2")}</span>
+              <span className="hero-title-sub">Trực quan hóa từ Hash đến Mạng lưới</span>
             </h1>
-            <p className="hero-desc">{t("home.desc")}</p>
-            <div className="hero-hash-container">
-              <div
-                className="anim-border hero-hash-pill"
-                style={{ "--glow-color": "var(--cyan)" } as React.CSSProperties}
-              >
-                <span className="hero-hash-prefix">SHA256(input) →</span>
-                {typed}
-                <span className="hero-hash-cursor">|</span>
-              </div>
-            </div>
+            <p className="hero-desc">
+              Khám phá 9 chức năng cốt lõi của blockchain qua các mô phỏng tương tác:
+              hàm băm SHA-256, khối, chữ ký số, mempool, cây Merkle, Proof-of-Work
+              và mạng full node thật chạy trên localhost.
+            </p>
             <div className="hero-actions">
               <button
                 className="btn btn-primary hero-btn-primary"
                 onClick={() => setTab("demo")}
               >
-                {t("home.tryDemo")}
+                Bắt đầu với SHA-256
               </button>
               <button
                 className="btn btn-secondary hero-btn-secondary"
-                onClick={() => setTab("about")}
+                onClick={() => setTab("mining")}
               >
-                {t("home.aboutProject")}
+                Khai thác & Mạng lưới
               </button>
             </div>
           </div>
@@ -117,132 +116,54 @@ export function HomeView() {
         <div className="stats-bar-grid">
           {STATS.map((s, i) => (
             <div
-              key={s.val}
-              className={`stats-item ${i < 3 ? "stats-item-bordered" : ""}`}
+              key={s.label}
+              className={`stats-item ${i < STATS.length - 1 ? "stats-item-bordered" : ""}`}
             >
               <div className="stats-val">
                 {s.val} <span className="stats-unit">{s.unit}</span>
               </div>
-              <div className="stats-label">{t(`home.stats.${s.labelKey}`)}</div>
+              <div className="stats-label">{s.label}</div>
             </div>
           ))}
-        </div>
-      </div>
-
-      <div className="section section-sm pb-0">
-        <div
-          className="card anim-border hero-demo-card"
-          style={{ "--glow-color": "var(--cyan)" } as React.CSSProperties}
-        >
-          <div className="hero-demo-header">
-            <div className="hero-demo-dot"></div>
-            <span className="hero-demo-label">{t("home.liveLabel")}</span>
-          </div>
-          <div className="live-demo-grid">
-            <div>
-              <div className="label">{t("home.inputLabel")}</div>
-              <input
-                className="inp"
-                placeholder={t("home.inputPlaceholder")}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-            </div>
-            <div className="live-demo-arrow">→</div>
-            <div>
-              <div className="label">
-                {t("home.outputLabel")}{" "}
-                <span className="hero-demo-lowcase-label">
-                  ({t("home.alwaysChars")})
-                </span>
-              </div>
-              <div className="hero-demo-output-box">
-                <span className="hash-display hero-demo-hash">
-                  {hash.slice(0, 32)}
-                  <br />
-                  {hash.slice(32)}
-                </span>
-              </div>
-              <div className="hero-demo-meta">
-                {t("home.lenLabel")}{" "}
-                <span className="hero-demo-meta-val text-green">64</span>{" "}
-                {t("home.hexChars")} ={" "}
-                <span className="hero-demo-meta-val text-cyan">256 bits</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       <div className="section">
         <div className="properties-header">
-          <h2 className="properties-title">{t("home.propTitle")}</h2>
-          <p className="properties-desc">{t("home.propDesc")}</p>
+          <h2 className="properties-title">9 chức năng, 3 trạm thực hành</h2>
+          <p className="properties-desc">
+            Mỗi thẻ dưới đây dẫn tới đúng nơi thực hành chức năng đó.
+          </p>
         </div>
-        <div className="grid-2 properties-grid">
-          {feats.map((f, i) => (
+        <div className="grid-3" style={{ gap: 20 }}>
+          {CARDS.map((c, i) => (
             <div
-              key={i}
-              className="card anim-border property-card"
+              key={c.title}
+              className="card anim-border"
               style={
                 {
-                  animationDelay: `${i * 0.08}s`,
-                  "--glow-color": "var(--cyan)",
-                } as React.CSSProperties
+                  "--glow-color": c.glow,
+                  animationDelay: `${i * 0.06}s`,
+                } as CSSProperties
               }
             >
               <div className="property-card-header">
-                <div className="property-icon-box">{f.icon || ["🔐","⛔","🌊","🧬"][i]}</div>
-                <div className="property-title">{f.title}</div>
+                <div className="property-icon-box">{c.icon}</div>
+                <div className="property-title">{c.title}</div>
               </div>
-              <p className="property-desc">{f.desc}</p>
+              <p className="property-desc" style={{ marginBottom: 16 }}>
+                {c.desc}
+              </p>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setTab(c.tab)}
+              >
+                {c.cta} →
+              </button>
             </div>
           ))}
         </div>
-        <div className="properties-footer">
-          <button
-            className="btn btn-primary properties-btn"
-            onClick={() => setTab("demo")}
-          >
-            {t("home.openDemo")}
-          </button>
-        </div>
       </div>
     </>
-  );
-}
-
-export function AppFooter() {
-  const { t } = useHub();
-  return (
-    <footer
-      style={{
-        borderTop: "1px solid rgba(56, 189, 248, 0.12)",
-        fontFamily: 'Inter, "Segoe UI", sans-serif',
-        padding: "14px 24px",
-        textAlign: "center",
-        fontSize: 12,
-        letterSpacing: "0.02em",
-        background:
-          "linear-gradient(160deg, rgb(5, 7, 26) 0%, rgb(8, 13, 36) 45%, rgb(6, 9, 24) 100%)",
-      }}
-    >
-      <span style={{ color: "rgb(100, 116, 139)" }}>{t("footerDesc")}</span>
-      <span style={{ color: "rgb(71, 85, 105)" }}>{t("footerDescMid")}</span>
-      <span
-        style={{
-          background:
-            "linear-gradient(90deg, rgb(56, 189, 248), rgb(129, 140, 248)) text",
-          WebkitTextFillColor: "transparent",
-          fontWeight: 700,
-        }}
-      >
-        HubBlock Team
-      </span>
-      <span style={{ color: "rgb(51, 65, 85)" }}>
-        {" "}
-        · {t("footerUni")}
-      </span>
-    </footer>
   );
 }
