@@ -9,18 +9,19 @@ import {
 } from "../shared/sha256";
 import { MerkleTab } from "./MerkleTab";
 import { BruteForceTab } from "./BruteForceTab";
+import { OnewayTab } from "./OnewayTab";
 
 type DemoTab =
   | "interactive"
-  | "fixed"
+  | "oneway"
   | "avalanche"
   | "bruteforce"
   | "merkle";
 
 const TAB_ORDER: DemoTab[] = [
   "interactive",
-  "fixed",
   "avalanche",
+  "oneway",
   "bruteforce",
   "merkle",
 ];
@@ -178,119 +179,6 @@ function InteractiveTab() {
   );
 }
 
-function FixedTab() {
-  const { t } = useHub();
-  const presets = [
-    { label: t("demo.exShort"), value: "A" },
-    { label: t("demo.exMed"), value: "Hello" },
-    { label: t("demo.exSent"), value: "Hello, World!" },
-    {
-      label: t("demo.exLong"),
-      value:
-        "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs!",
-    },
-  ];
-  return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-          {t("demo.fixedTitle")}
-        </h3>
-        <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20 }}>
-          {t("demo.fixedDesc")}
-        </p>
-        <div style={{ display: "grid", gap: 14 }}>
-          {presets.map((p) => {
-            const h = sha256Sync(p.value);
-            const shown =
-              p.value.length > 42 ? `${p.value.slice(0, 42)}...` : p.value;
-            return (
-              <div
-                key={p.value}
-                style={{
-                  background: "var(--bg1)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 14,
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    background: "var(--bg2)",
-                    borderBottom: "1px solid var(--border)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 8,
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span className="badge badge-cyan" style={{ fontSize: 10 }}>
-                      {p.label}
-                    </span>
-                    <code
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: 12,
-                        color: "var(--text)",
-                        background: "rgba(34, 211, 238, 0.08)",
-                        padding: "3px 10px",
-                        borderRadius: 6,
-                      }}
-                    >
-                      &quot;{shown}&quot;
-                    </code>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <span style={{ fontSize: 11, color: "var(--text3)" }}>
-                      {t("demo.inputLen")}{" "}
-                      <span
-                        style={{
-                          color: "var(--amber)",
-                          fontFamily: "var(--mono)",
-                        }}
-                      >
-                        {p.value.length} {t("demo.chars")}
-                      </span>
-                    </span>
-                    <span style={{ fontSize: 11, color: "var(--text3)" }}>
-                      {t("demo.outputLen")}{" "}
-                      <span
-                        style={{
-                          color: "var(--green)",
-                          fontFamily: "var(--mono)",
-                        }}
-                      >
-                        64 {t("demo.chars")} ✓
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <div style={{ padding: "12px 16px" }}>
-                  <span className="hash-display" style={{ fontSize: 12 }}>
-                    {h.slice(0, 32)}
-                    <br />
-                    {h.slice(32)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <p style={{ fontSize: 13, color: "var(--text2)", marginTop: 16 }}>
-          {t("demo.fixedResult")}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function AvalancheTab() {
   const { t } = useHub();
   const [a, setA] = useState("hello");
@@ -405,6 +293,7 @@ export function HashDemoView() {
   const tabLabel = (id: DemoTab) => {
     if (id === "merkle") return t("nav.merkleTab");
     if (id === "bruteforce") return lang === "vi" ? "Vét cạn" : "Brute-force";
+    if (id === "oneway") return lang === "vi" ? "Một chiều" : "One-way";
     return t(`demo.tabs.${id}`);
   };
   return (
@@ -444,7 +333,7 @@ export function HashDemoView() {
       </div>
       <div className="section" style={{ paddingTop: 0 }}>
         {tab === "interactive" && <InteractiveTab />}
-        {tab === "fixed" && <FixedTab />}
+        {tab === "oneway" && <OnewayTab />}
         {tab === "avalanche" && <AvalancheTab />}
         {tab === "bruteforce" && <BruteForceTab />}
         {tab === "merkle" && <MerkleTab />}

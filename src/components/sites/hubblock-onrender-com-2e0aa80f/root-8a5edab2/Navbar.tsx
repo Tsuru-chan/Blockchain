@@ -17,6 +17,8 @@ export function Navbar() {
     setMobileOpen(false);
     setTab(id);
   };
+  // Tab RSA giờ chỉ còn nội dung P3 nên hiển thị tên đúng
+  const tabLabel = (id: TabId) => (id === "rsa" ? "Chữ ký số" : t(`nav.${id}`));
 
   return (
     <nav className="nav">
@@ -37,7 +39,7 @@ export function Navbar() {
                 className={`nav-link ${tab === id ? "active" : ""}`}
                 onClick={() => go(id)}
               >
-                {t(`nav.${id}`)}
+                {tabLabel(id)}
               </button>
             </li>
           ))}
@@ -69,7 +71,7 @@ export function Navbar() {
             className={`nav-mobile-link ${tab === id ? "active" : ""}`}
             onClick={() => go(id)}
           >
-            {t(`nav.${id}`)}
+            {tabLabel(id)}
           </button>
         ))}
       </div>

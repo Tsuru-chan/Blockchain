@@ -556,7 +556,7 @@ function ExplorerTab() {
 
 export function MiningView() {
   const { t, lang } = useHub();
-  const [tab, setTab] = useState<MiningTab>("sim");
+  const [tab, setTab] = useState<MiningTab>("explorer");
   const [diff, setDiff] = useState(3);
   const tabLabel = (id: MiningTab) => {
     if (id === "mempool") return "Mempool";
@@ -567,7 +567,7 @@ export function MiningView() {
     <>
       <div className="mining-tab-bar-container">
         <div className="tab-bar-scroll mining-tab-bar">
-          {(["diff", "sim", "explorer", "mempool", "network"] as MiningTab[]).map((id) => (
+          {(["explorer", "mempool", "sim", "diff", "network"] as MiningTab[]).map((id) => (
             <button
               key={id}
               className={`mining-tab-btn ${tab === id ? "active" : ""}`}
