@@ -1,62 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import { useHub, type TabId } from "../shared/hub-context";
+import { useHub, type TabId } from "@/components/app-context";
 
-const TABS: TabId[] = ["home", "demo", "mining", "rsa"];
+const TABS: { id: TabId; label: string; hint: string }[] = [
+  { id: "home", label: "Sổ cái", hint: "P1–P9" },
+  { id: "demo", label: "Hàm băm", hint: "P1 · P5" },
+  { id: "mining", label: "Khối & Đào", hint: "P2 · P6 · P7 · P4 · P8" },
+  { id: "rsa", label: "Chữ ký số", hint: "P3" },
+];
 
 export function Navbar() {
-  const {
-    tab,
-    setTab,
-    t,
-  } = useHub();
+  const { tab, setTab } = useHub();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const go = (id: TabId) => {
     setMobileOpen(false);
     setTab(id);
   };
-  // Tab RSA giờ chỉ còn nội dung P3 nên hiển thị tên đúng
-  const tabLabel = (id: TabId) => (id === "rsa" ? "Chữ ký số" : t(`nav.${id}`));
 
   return (
-    <nav className="nav">
+    <nav className="nav" aria-label="Điều hướng chính">
       <div className="nav-inner">
-        <a
-          className="nav-logo"
-          style={{ cursor: "pointer" }}
-          onClick={() => go("home")}
-        >
-          <span style={{ fontWeight: 800, fontSize: 18, color: "var(--text)" }}>
-            Blockchain
+        <button className="nav-logo" onClick={() => go("home")} aria-label="Về sổ cái">
+          HubBlock
+          <span className="masthead-sub" style={{ marginLeft: 8 }}>
+            Mô phỏng Blockchain P1–P9
           </span>
-        </a>
+        </button>
         <ul className="nav-links">
-          {TABS.map((id) => (
-            <li key={id}>
+          {TABS.map((item) => (
+            <li key={item.id}>
               <button
-                className={`nav-link ${tab === id ? "active" : ""}`}
-                onClick={() => go(id)}
+                className={`nav-link ${tab === item.id ? "active" : ""}`}
+                onClick={() => go(item.id)}
+                aria-current={tab === item.id ? "page" : undefined}
+                title={item.hint}
               >
-                {tabLabel(id)}
+                {item.label}
               </button>
             </li>
           ))}
         </ul>
         <button
-          className="nav-hamburger"
-          aria-label="Toggle menu"
+          className="nav-hamburger btn btn-ghost btn-sm"
+          aria-label="Mở menu"
+          aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((v) => !v)}
         >
           <svg
-            width="22"
-            height="22"
+            width="18"
+            height="18"
             viewBox="0 0 22 22"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
+            aria-hidden
           >
             <line x1="2" y1="6" x2="20" y2="6"></line>
             <line x1="2" y1="11" x2="20" y2="11"></line>
@@ -64,17 +64,19 @@ export function Navbar() {
           </svg>
         </button>
       </div>
-      <div className={`nav-mobile ${mobileOpen ? "open" : ""}`}>
-        {TABS.map((id) => (
-          <button
-            key={id}
-            className={`nav-mobile-link ${tab === id ? "active" : ""}`}
-            onClick={() => go(id)}
-          >
-            {tabLabel(id)}
-          </button>
-        ))}
-      </div>
+      {mobileOpen && (
+        <div className="nav-mobile open">
+          {TABS.map((item) => (
+            <button
+              key={item.id}
+              className={`nav-mobile-link ${tab === item.id ? "active" : ""}`}
+              onClick={() => go(item.id)}
+            >
+              {item.label} · {item.hint}
+            </button>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }

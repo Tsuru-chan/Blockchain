@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useHub } from "../shared/hub-context";
+import { useHub } from "@/components/app-context";
 import {
   ecdsaSignHex,
   ecdsaVerifyHex,
@@ -10,7 +10,7 @@ import {
   txCanonical,
   txId,
   type SignedTx,
-} from "../shared/blockchain";
+} from "@/lib/crypto/blockchain";
 
 const STR = {
   vi: {

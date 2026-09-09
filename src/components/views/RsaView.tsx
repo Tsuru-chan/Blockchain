@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useHub } from "../shared/hub-context";
+import { useHub } from "@/components/app-context";
 import {
   ecdsaSignHex,
   ecdsaVerifyHex,
   exportRawPubHex,
   genECDSAKeyPair,
-} from "../shared/blockchain";
+} from "@/lib/crypto/blockchain";
 
 // ---------- ECDSA P-256 card (P3) ----------
 
@@ -55,14 +55,7 @@ function EcdsaCard({ msg }: { msg: string }) {
   };
 
   return (
-    <div
-      className="card"
-      style={{
-        marginBottom: 16,
-        borderColor: "rgba(56,189,248,0.35)",
-        background: "linear-gradient(145deg, rgba(56,189,248,0.06), var(--bg1))",
-      }}
-    >
+    <div className="card" style={{ marginBottom: 16 }}>
       <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
         🔐 ECDSA P-256 — {lang === "vi" ? "key thực tế của Blockchain" : "real Blockchain keys"}
       </h3>
@@ -111,32 +104,23 @@ function EcdsaCard({ msg }: { msg: string }) {
 
 export function RsaView() {
   const { lang } = useHub();
-  const [msg, setMsg] = useState("Hello, Blockchain!");
+  const [msg, setMsg] = useState("Alice gửi 10 cho Bob");
   return (
-    <>
-      <div className="rsa-hero">
-        <div className="rsa-hero-inner">
-          <h1
-            style={{
-              fontSize: "clamp(28px, 5vw, 48px)",
-              fontWeight: 900,
-              margin: "0 0 12px",
-              backgroundImage: "linear-gradient(135deg,#22d3ee,#3b82f6,#a78bfa)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            {lang === "vi" ? "Chữ ký số ECDSA" : "ECDSA Digital Signatures"}
-          </h1>
-          <p style={{ color: "var(--text2)", maxWidth: 560, margin: "0 auto", fontSize: 16, lineHeight: 1.7 }}>
-            {lang === "vi"
-              ? "Tạo cặp khóa, ký thông điệp bằng Private Key và xác minh bằng Public Key — đúng quy trình P3."
-              : "Generate a key pair, sign a message with the Private Key and verify with the Public Key — the P3 flow."}
-          </p>
-        </div>
-      </div>
-      <div className="section">
+    <div style={{ display: "grid", gap: 16 }}>
+      <section className="lab-hero">
+        <p className="masthead-sub" style={{ margin: "0 0 10px" }}>
+          P3 Key Pair · Digital Signature
+        </p>
+        <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)" }}>
+          {lang === "vi" ? "Chữ ký số ECDSA" : "ECDSA Digital Signatures"}
+        </h1>
+        <p className="lab-lede" style={{ fontSize: 15 }}>
+          {lang === "vi"
+            ? "Tạo cặp khóa, ký thông điệp bằng Private Key và xác minh bằng Public Key — đúng quy trình P3."
+            : "Generate a key pair, sign a message with the Private Key and verify with the Public Key — the P3 flow."}
+        </p>
+      </section>
+      <div className="lab-tray">
         <div className="label">
           {lang === "vi" ? "Thông điệp cần ký" : "Message to sign"}
         </div>
@@ -144,10 +128,22 @@ export function RsaView() {
           className="inp"
           value={msg}
           onChange={(e) => setMsg(e.target.value)}
-          style={{ marginBottom: 16 }}
+          style={{ marginBottom: 12 }}
         />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => setMsg("Alice gửi 10 cho Bob")}>
+            10 giữ nguyên
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setMsg("Alice gửi 100 cho Bob")}>
+            Thử sửa 10 thành 100
+          </button>
+        </div>
         <EcdsaCard msg={msg} />
+        <div className="note-card" style={{ marginTop: 16 }}>
+          Demo bắt buộc P3: ký ở 10, sau đó sửa thành 100 rồi nhấn Xác minh — chữ ký phải báo
+          INVALID. Private key giữ bí mật, public key gửi kèm để node xác minh.
+        </div>
       </div>
-    </>
+    </div>
   );
 }

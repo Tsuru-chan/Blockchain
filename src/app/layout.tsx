@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,6 +12,13 @@ const jbMono = JetBrains_Mono({
   variable: "--font-jbmono",
   subsets: ["latin", "vietnamese"],
   display: "swap",
+});
+
+const display = Source_Serif_4({
+  variable: "--font-display",
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +36,7 @@ export default function RootLayout({
     <html
       lang="vi"
       data-theme="light"
-      className={`${inter.variable} ${jbMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jbMono.variable} ${display.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">{children}</body>

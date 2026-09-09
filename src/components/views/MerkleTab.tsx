@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useHub } from "../shared/hub-context";
-import { sha256Sync } from "../shared/sha256";
+import { useHub } from "@/components/app-context";
+import { sha256Sync } from "@/lib/crypto/sha256";
 import {
   getMerkleProof,
   verifyMerkleProof,
-} from "../shared/blockchain";
+} from "@/lib/crypto/blockchain";
 
 const PROOF_STR = {
   vi: {

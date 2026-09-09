@@ -1,5 +1,5 @@
 // Synchronous SHA-256 (compact, public-domain style implementation) + async Web Crypto wrapper.
-// Used across HubBlock clone for real-time hashing, mining simulation and Merkle trees.
+// Used across the app for real-time hashing, mining simulation and Merkle trees.
 
 const K = [
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
@@ -64,7 +64,7 @@ export function sha256Sync(input: string): string {
     .join("");
 }
 
-/** Async wrapper preferring Web Crypto (matches original's real-time behavior). */
+/** Async wrapper preferring Web Crypto, with sync fallback. */
 export async function sha256(input: string): Promise<string> {
   try {
     if (

@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { dict, type Lang } from "./dict";
+import { dict, type Lang } from "@/lib/i18n/dictionary";
 
 export type TabId = "home" | "demo" | "mining" | "rsa";
 

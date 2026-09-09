@@ -1,4 +1,4 @@
-// AUTO-GENERATED from live bundle jt={vi,en} (hubblock.onrender.com). Verbatim content.
+// Bilingual (vi/en) content dictionary for the app UI.
 export type Lang = 'vi' | 'en';
 export type DictValue = string | { [k: string]: DictValue } | DictValue[];
 export type LangDict = { [k: string]: DictValue };

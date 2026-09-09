@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-/** Fixed full-viewport particle canvas (original: fixed canvas, z-index -1). */
+/** Fixed full-viewport particle canvas rendered behind the content (z-index -1). */
 export function ParticleField() {
   const ref = useRef<HTMLCanvasElement>(null);
 

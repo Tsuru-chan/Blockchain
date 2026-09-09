@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useHub } from "../shared/hub-context";
-import { sha256Sync } from "../shared/sha256";
+import { useHub } from "@/components/app-context";
+import { sha256Sync } from "@/lib/crypto/sha256";
+import { TabSegmented } from "@/components/lab/lab";
 
 type MiningTab = "diff" | "sim" | "explorer" | "mempool" | "network";
 
@@ -260,7 +261,7 @@ import {
   blockHash,
   merkleRootSync,
   type BlockHeader,
-} from "../shared/blockchain";
+} from "@/lib/crypto/blockchain";
 
 interface BlockTx {
   from: string;
@@ -424,8 +425,8 @@ function ExplorerTab() {
               b.hash.startsWith("0".repeat(b.header.difficulty)) &&
               (i === 0 || b.header.previousHash === chain[i - 1].hash);
             return (
-              <div key={`${b.index}-${i}`}>
-                <div className={`card anim-border block-card ${ok ? "" : "invalid"}`}>
+              <div key={`${b.index}-${i}`} className="chain-node">
+                <div className={`card block-card ${ok ? "" : "invalid"}`}>
                   <div className="block-shimmer-overlay"></div>
                   <div className={`block-accent-line ${ok ? "" : "invalid"}`}></div>
                   <div className="block-header">
@@ -499,7 +500,7 @@ function ExplorerTab() {
                     )}
                   </div>
                 </div>
-                {i < chain.length - 1 && <div className="chain-arrow-box">→</div>}
+                {i < chain.length - 1 && <div className="chain-link" aria-hidden />}
               </div>
             );
           })}
@@ -559,32 +560,37 @@ export function MiningView() {
   const [tab, setTab] = useState<MiningTab>("explorer");
   const [diff, setDiff] = useState(3);
   const tabLabel = (id: MiningTab) => {
-    if (id === "mempool") return "Mempool";
-    if (id === "network") return lang === "vi" ? "Mạng lưới" : "Network";
-    return t(`mining.tabs.${id}`);
+    if (id === "mempool") return "Mempool · P4";
+    if (id === "network") return lang === "vi" ? "Mạng lưới · P8–P9" : "Network · P8–P9";
+    if (id === "explorer") return `${t(`mining.tabs.${id}`)} · P2/P6`;
+    if (id === "sim") return `${t(`mining.tabs.${id}`)} · P7`;
+    return `${t(`mining.tabs.${id}`)} · P7`;
   };
+  const order: MiningTab[] = ["explorer", "mempool", "sim", "diff", "network"];
   return (
-    <>
-      <div className="mining-tab-bar-container">
-        <div className="tab-bar-scroll mining-tab-bar">
-          {(["explorer", "mempool", "sim", "diff", "network"] as MiningTab[]).map((id) => (
-            <button
-              key={id}
-              className={`mining-tab-btn ${tab === id ? "active" : ""}`}
-              onClick={() => setTab(id)}
-            >
-              {tabLabel(id)}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="section" style={{ paddingTop: 40 }}>
+    <div style={{ display: "grid", gap: 16 }}>
+      <section className="lab-hero">
+        <p className="masthead-sub" style={{ margin: "0 0 10px" }}>
+          P2 · P4 · P6 · P7 · P8 · P9
+        </p>
+        <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)" }}>{t("mining.title")}</h1>
+        <p className="lab-lede" style={{ fontSize: 15 }}>
+          {t("mining.desc")}
+        </p>
+      </section>
+      <TabSegmented
+        ariaLabel="Tab khối và đào"
+        value={tab}
+        onChange={setTab}
+        options={order.map((id) => ({ id, label: tabLabel(id) }))}
+      />
+      <div>
         {tab === "diff" && <DifficultyTab diff={diff} setDiff={setDiff} />}
         {tab === "sim" && <SimulatorTab diff={diff} />}
         {tab === "explorer" && <ExplorerTab />}
         {tab === "mempool" && <MempoolTab />}
         {tab === "network" && <NetworkTab />}
       </div>
-    </>
+    </div>
   );
 }

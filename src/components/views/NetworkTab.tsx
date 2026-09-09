@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useHub } from "../shared/hub-context";
+import { useHub } from "@/components/app-context";
 import {
   ecdsaSignHex,
   exportRawPubHex,
   genECDSAKeyPair,
   txCanonical,
   txId,
-} from "../shared/blockchain";
+} from "@/lib/crypto/blockchain";
 
 const NODES = [
   { id: "node1", port: 4101 },

@@ -34,7 +34,7 @@ function parseArgs() {
 }
 const { id: NODE_ID, port: PORT, difficulty: DIFFICULTY } = parseArgs();
 
-// ---------- crypto helpers (khớp format với browser shared/blockchain.ts) ----------
+// ---------- crypto helpers (khớp format với browser src/lib/crypto/blockchain.ts) ----------
 const sha256 = (s) => crypto.createHash("sha256").update(s, "utf8").digest("hex");
 
 function merkleRoot(hashes) {

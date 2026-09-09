@@ -1,15 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useHub } from "../shared/hub-context";
+import { useHub } from "@/components/app-context";
 import {
   countDiffBits,
   countDiffChars,
   sha256Sync,
-} from "../shared/sha256";
+} from "@/lib/crypto/sha256";
 import { MerkleTab } from "./MerkleTab";
 import { BruteForceTab } from "./BruteForceTab";
 import { OnewayTab } from "./OnewayTab";
+import { HashField, LabTray, SectionHeading, TabSegmented } from "@/components/lab/lab";
 
 type DemoTab =
   | "interactive"
@@ -25,38 +26,6 @@ const TAB_ORDER: DemoTab[] = [
   "bruteforce",
   "merkle",
 ];
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background: active ? "rgba(34, 211, 238, 0.15)" : "none",
-        border: "none",
-        borderRadius: 10,
-        padding: "8px 16px",
-        color: active ? "var(--cyan)" : "var(--text2)",
-        fontFamily: "var(--sans)",
-        fontSize: 13,
-        fontWeight: 500,
-        cursor: "pointer",
-        transition: "0.2s",
-        outline: active ? "rgba(34, 211, 238, 0.3) solid 1px" : "none",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 /** Hash rendered as char spans grouped 16 per row, 4-char spacing. */
 export function HashChars({ hash }: { hash: string }) {
@@ -93,7 +62,7 @@ function InteractiveTab() {
   const hash = useMemo(() => sha256Sync(input), [input]);
   const byteLen = new TextEncoder().encode(input).length;
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div>
       <div className="card" style={{ marginBottom: 20 }}>
         <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
           {t("demo.genTitle")}
@@ -124,43 +93,33 @@ function InteractiveTab() {
             64/64 {t("demo.hexChars")}
           </span>
         </div>
+        <HashField hash={hash} />
         <div
           style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 14,
-            padding: "18px 20px",
-            minHeight: 80,
+            marginTop: 10,
+            fontSize: 11,
+            color: "var(--text3)",
+            display: "flex",
+            gap: 16,
+            flexWrap: "wrap",
           }}
         >
-          <HashChars hash={hash} />
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: 11,
-              color: "var(--text3)",
-              display: "flex",
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <span>
-              {t("demo.algoLabel")}{" "}
-              <span style={{ color: "var(--cyan)" }}>SHA-256</span>
-            </span>
-            <span>
-              {t("demo.sizeLabel")}{" "}
-              <span style={{ color: "var(--cyan)" }}>256 bits</span>
-            </span>
-            <span>
-              {t("demo.hexLabel")}{" "}
-              <span style={{ color: "var(--green)" }}>64</span>
-            </span>
-            <span>
-              {t("demo.inputBytesLabel")}{" "}
-              <span style={{ color: "var(--amber)" }}>{byteLen}</span>
-            </span>
-          </div>
+          <span>
+            {t("demo.algoLabel")}{" "}
+            <span style={{ color: "var(--cyan)" }}>SHA-256</span>
+          </span>
+          <span>
+            {t("demo.sizeLabel")}{" "}
+            <span style={{ color: "var(--cyan)" }}>256 bits</span>
+          </span>
+          <span>
+            {t("demo.hexLabel")}{" "}
+            <span style={{ color: "var(--green)" }}>64</span>
+          </span>
+          <span>
+            {t("demo.inputBytesLabel")}{" "}
+            <span style={{ color: "var(--amber)" }}>{byteLen}</span>
+          </span>
         </div>
       </div>
       <div
@@ -171,9 +130,7 @@ function InteractiveTab() {
           border: "1px solid rgba(34, 211, 238, 0.15)",
         }}
       >
-        <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.8 }}>
-          💡 {t("demo.tryDesc")}
-        </p>
+        <p className="mining-tip-desc">💡 {t("demo.tryDesc")}</p>
       </div>
     </div>
   );
@@ -190,7 +147,7 @@ function AvalancheTab() {
   const pct = Math.round((diffBits / 256) * 100);
   const good = pct >= 40;
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div>
       <div className="card" style={{ marginBottom: 20 }}>
         <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
           {t("demo.avTitle")}
@@ -250,7 +207,7 @@ function AvalancheTab() {
             {good ? t("demo.avGood") : t("demo.avLow")}
           </span>
         </div>
-        <div className="grid-2">
+        <div className="grid-2 hash-compare">
           <div>
             <div className="label">
               {t("demo.hashA")} (&quot;{a}&quot;)
@@ -297,47 +254,36 @@ export function HashDemoView() {
     return t(`demo.tabs.${id}`);
   };
   return (
-    <>
-      <div className="section" style={{ paddingBottom: 0, paddingTop: 40 }}>
-        <h1
-          style={{
-            fontSize: "clamp(24px, 4vw, 40px)",
-            fontWeight: 800,
-            letterSpacing: -1,
-            marginBottom: 8,
-          }}
-        >
-          {t("demo.title")}
-        </h1>
-        <p style={{ color: "var(--text2)", fontSize: 14, marginBottom: 28 }}>
+    <div style={{ display: "grid", gap: 16 }}>
+      <section className="lab-hero">
+        <p className="masthead-sub" style={{ margin: "0 0 10px" }}>
+          P1 SHA-256 · P5 Merkle
+        </p>
+        <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)" }}>{t("demo.title")}</h1>
+        <p className="lab-lede" style={{ fontSize: 15 }}>
           {t("demo.desc")}
         </p>
-        <div
-          className="tab-bar-scroll"
-          style={{
-            marginBottom: 32,
-            padding: 4,
-            background: "var(--bg1)",
-            borderRadius: 14,
-            border: "1px solid var(--border)",
-            width: "100%",
-            maxWidth: "fit-content",
-          }}
-        >
-          {TAB_ORDER.map((id) => (
-            <TabButton key={id} active={tab === id} onClick={() => setTab(id)}>
-              {tabLabel(id)}
-            </TabButton>
-          ))}
-        </div>
-      </div>
-      <div className="section" style={{ paddingTop: 0 }}>
+      </section>
+      <TabSegmented
+        ariaLabel="Tab hàm băm"
+        value={tab}
+        onChange={setTab}
+        options={TAB_ORDER.map((id) => ({ id, label: tabLabel(id) }))}
+      />
+      <LabTray>
         {tab === "interactive" && <InteractiveTab />}
         {tab === "oneway" && <OnewayTab />}
         {tab === "avalanche" && <AvalancheTab />}
         {tab === "bruteforce" && <BruteForceTab />}
         {tab === "merkle" && <MerkleTab />}
+      </LabTray>
+      <div className="note-card">
+        <SectionHeading title="Câu hỏi bảo vệ" />
+        <p style={{ margin: 0, fontSize: 13 }}>
+          Vì sao output luôn 256 bit? Hash khác encryption ở đâu? Vét cạn phụ thuộc độ dài và
+          bảng ký tự ra sao?
+        </p>
       </div>
-    </>
+    </div>
   );
 }
