@@ -20,7 +20,7 @@ const LESSONS: LabDestination[] = [
 
 export function HomeView() {
   const { openLab, t } = useHub();
-  const [sample, setSample] = useState("HubBlock-2026");
+  const [sample, setSample] = useState("Blockchain-2026");
   const hash = useMemo(() => sha256Sync(sample), [sample]);
   return (
     <div className="home-layout">

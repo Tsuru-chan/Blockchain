@@ -66,9 +66,9 @@ function DifficultyTab({ diff, setDiff }: { diff: number; setDiff: (d: number) =
 
 function SimulatorTab({ diff, setDiff }: { diff: number; setDiff: (value: number) => void }) {
   const { t } = useHub();
-  const [data, setData] = useState("HubBlock");
+  const [data, setData] = useState("Blockchain");
   const [nonce, setNonce] = useState(0);
-  const [hash, setHash] = useState(() => sha256Sync("HubBlock0"));
+  const [hash, setHash] = useState(() => sha256Sync("Blockchain0"));
   const [job, setJob] = useState<null | { data: string; diff: number }>(null);
   const [found, setFound] = useState<number | null>(null);
   const [tries, setTries] = useState(0);

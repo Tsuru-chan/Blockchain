@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Blockchain Visualizer (HubBlock)
+# Blockchain Visualizer
 
 ## What This Is
 An interactive educational web app visualizing blockchain concepts: SHA-256 hashing, avalanche effect, block mining (Proof of Work), blockchain explorer, Merkle trees, P2P network simulation and RSA cryptography. Built with Next.js + shadcn/ui + Tailwind v4. UI defaults to Vietnamese, light theme.

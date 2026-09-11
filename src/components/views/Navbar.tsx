@@ -27,7 +27,7 @@ export function Navbar() {
       <a href="#main-content" className="skip-link">{t("ui.skip")}</a>
       <nav className="nav" aria-label={t("ui.navLabel")}>
         <div className="nav-inner">
-          <button className="nav-logo" onClick={() => go("home")} aria-label={t("ui.backHome")}><BookOpen size={24} strokeWidth={1.5} aria-hidden /><span>HubBlock<span className="brand-hint">{t("ui.brandHint")}</span></span></button>
+          <button className="nav-logo" onClick={() => go("home")} aria-label={t("ui.backHome")}><BookOpen size={24} strokeWidth={1.5} aria-hidden /><span>Blockchain<span className="brand-hint">{t("ui.brandHint")}</span></span></button>
           <ul className="nav-links">{TABS.map((id) => <li key={id}><button className={`nav-link ${tab === id ? "active" : ""}`} onClick={() => go(id)} aria-current={tab === id ? "page" : undefined}>{t(`ui.${id}`)}</button></li>)}</ul>
           <a className="slides-cta" href={SLIDES_URL} target="_blank" rel="noopener noreferrer" aria-label={t("ui.slidesHint")} title={t("ui.slidesHint")}><Presentation size={18} aria-hidden /><span className="slides-cta-label">{t("nav.slides")}</span></a>
           <button ref={menuButton} className="nav-hamburger btn btn-ghost" aria-label={t(mobileOpen ? "ui.closeMenu" : "ui.openMenu")} aria-expanded={mobileOpen} aria-controls="mobile-navigation" onClick={() => setMobileOpen((value) => !value)}>{mobileOpen ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}</button>

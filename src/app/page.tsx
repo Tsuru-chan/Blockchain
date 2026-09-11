@@ -7,7 +7,7 @@ import { HashDemoView } from "@/components/views/HashDemoView";
 import { MiningView } from "@/components/views/MiningView";
 import { RsaView } from "@/components/views/RsaView";
 
-function HubBlockPage() {
+function BlockchainPage() {
   const { tab, t } = useHub();
   return (
     <>
@@ -19,7 +19,7 @@ function HubBlockPage() {
         {tab === "rsa" && <RsaView />}
       </main>
       <footer className="colophon">
-        <span><strong>HubBlock</strong><span className="footer-divider" aria-hidden>/</span>{t("ui.footer")}</span>
+        <span><strong>Blockchain</strong><span className="footer-divider" aria-hidden>/</span>{t("ui.footer")}</span>
         <span>{t("ui.footerNote")}</span>
       </footer>
     </>
@@ -29,7 +29,7 @@ function HubBlockPage() {
 export default function Home() {
   return (
     <HubProvider>
-      <HubBlockPage />
+      <BlockchainPage />
     </HubProvider>
   );
 }

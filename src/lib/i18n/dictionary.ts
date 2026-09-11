@@ -267,8 +267,8 @@ export const dict: Record<Lang, LangDict> =
    "slides": "Slide Sách"
   },
   "home": {
-   "badge": "SVNCKH 2025 — Nghiên Cứu Khoa Học Sinh Viên",
-   "title1": "HubBlock",
+   "badge": "Dự án Blockchain",
+   "title1": "Blockchain",
    "title2": "Công cụ Trực quan hóa SHA-256",
    "desc": "Khám phá cách hàm băm mật mã hoạt động qua các trực quan hóa tương tác. Hiểu các tính chất của SHA-256 bảo mật chuỗi khối hiện đại.",
    "tryDemo": "Thử Mô phỏng Hash",
@@ -627,13 +627,13 @@ export const dict: Record<Lang, LangDict> =
    "resultLabel": "KẾT QUẢ",
    "panelDuplicate": "TRÁI (NHÂN ĐÔI)"
   },
-  "footerBuilt": "Phát triển bởi HubBlock Team",
-  "footerUni": "Trường Đại học Ngân hàng TP.HCM",
-  "footer": "Công cụ trực quan hóa Blockchain cho SVNCKH 2025",
+  "footerBuilt": "Blockchain",
+  "footerUni": "Trường Đại học Đà Lạt",
+  "footer": "Công cụ trực quan hóa Blockchain",
   "footerContactTitle": "THÔNG TIN LIÊN LẠC",
   "footerDesc": "Công cụ trực quan hóa Chuỗi khối",
   "footerDescMid": " · phát triển bởi ",
-  "footerSupervisorRole": "Giảng viên hướng dẫn",
+  "footerSupervisorRole": "Giảng viên",
   "footerTeamLeadRole": "Nhóm trưởng",
   "rsa": {
    "theoryTitle": "Mã Hóa Bất Đối Xứng là gì?",
@@ -1037,8 +1037,8 @@ export const dict: Record<Lang, LangDict> =
    "slides": "Book Slides"
   },
   "home": {
-   "badge": "SVNCKH 2025 — Student Scientific Research",
-   "title1": "HubBlock",
+   "badge": "Blockchain Lab",
+   "title1": "Blockchain",
    "title2": "SHA-256 Visualizer",
    "desc": "Explore how cryptographic hash functions work through interactive visualizations. Understand the properties of SHA-256 that secure modern blockchain.",
    "tryDemo": "Try Hash Demo",
@@ -1397,9 +1397,9 @@ export const dict: Record<Lang, LangDict> =
    "resultLabel": "RESULT",
    "panelDuplicate": "LEFT (DUPLICATED)"
   },
-  "footerBuilt": "Developed by HubBlock Team",
-  "footerUni": "Ho Chi Minh City University of Banking",
-  "footer": "Blockchain Visualizer for SVNCKH 2025",
+  "footerBuilt": "Blockchain",
+  "footerUni": "Da Lat University",
+  "footer": "Blockchain Visualizer",
   "footerContactTitle": "CONTACT INFORMATION",
   "footerDesc": "Blockchain Visualization Tool",
   "footerDescMid": " · developed by ",

@@ -1,13 +1,12 @@
 {
-  "name": "hubblock-slides",
+  "name": "blockchain-slides",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Slidev deck gioi thieu sach Bitcoin, Blockchain, and Cryptoassets (Schar/Berentsen) — tieng Viet. Package doc lap, tach biet khoi Next.js app.",
   "scripts": {
     "dev": "slidev slides.md --port 3030",
     "build": "slidev build slides.md",
-    "export": "slidev export slides.md --format pdf --output ./dist/hubblock-sach.pdf"
+    "export": "slidev export slides.md --format pdf --output ./dist/blockchain-sach.pdf"
   },
   "dependencies": {
     "@slidev/cli": "52.19.1",
