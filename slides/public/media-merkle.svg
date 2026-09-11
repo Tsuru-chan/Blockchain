@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">
+  <rect width="480" height="360" rx="20" fill="#f8fafc"/>
+  <text x="240" y="44" text-anchor="middle" font-family="Inter,Arial" font-weight="800" font-size="16" fill="#3e5166">Merkle Root · O(log N)</text>
+  <g font-family="monospace" font-size="12" font-weight="700">
+    <rect x="175" y="60" width="130" height="36" rx="18" fill="#3e5166"/><text x="240" y="83" text-anchor="middle" fill="#fff">ROOT</text>
+    <rect x="80" y="125" width="130" height="36" rx="12" fill="#34d399"/><text x="145" y="148" text-anchor="middle" fill="#06302a">H12</text>
+    <rect x="270" y="125" width="130" height="36" rx="12" fill="#34d399"/><text x="335" y="148" text-anchor="middle" fill="#06302a">H34</text>
+    <rect x="30" y="200" width="90" height="34" rx="10" fill="#fff" stroke="#3e5166" stroke-width="2"/><text x="75" y="222" text-anchor="middle" fill="#3e5166">TX1</text>
+    <rect x="135" y="200" width="90" height="34" rx="10" fill="#fff" stroke="#3e5166" stroke-width="2"/><text x="180" y="222" text-anchor="middle" fill="#3e5166">TX2</text>
+    <rect x="255" y="200" width="90" height="34" rx="10" fill="#fff" stroke="#3e5166" stroke-width="2"/><text x="300" y="222" text-anchor="middle" fill="#3e5166">TX3</text>
+    <rect x="360" y="200" width="90" height="34" rx="10" fill="#fff" stroke="#3e5166" stroke-width="2"/><text x="405" y="222" text-anchor="middle" fill="#3e5166">TX4</text>
+  </g>
+  <g stroke="#3e5166" stroke-width="2.5" fill="none">
+    <line x1="145" y1="125" x2="240" y2="96"/><line x1="335" y1="125" x2="240" y2="96"/>
+    <line x1="75" y1="200" x2="145" y2="161"/><line x1="180" y1="200" x2="145" y2="161"/>
+    <line x1="300" y1="200" x2="335" y2="161"/><line x1="405" y1="200" x2="335" y2="161"/>
+  </g>
+  <rect x="30" y="260" width="420" height="64" rx="12" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="240" y="284" text-anchor="middle" font-family="Inter,Arial" font-size="13" font-weight="700" fill="#92400e">SPV chỉ cần đường dẫn Merkle + header 80 bytes</text>
+  <text x="240" y="306" text-anchor="middle" font-family="monospace" font-size="12" fill="#92400e">sửa 1 ký tự → gãy toàn chuỗi</text>
+</svg>

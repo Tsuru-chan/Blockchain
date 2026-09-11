@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Slidev deck: package tách biệt, output build không lint
+    "slides/dist/**",
+    "slides/node_modules/**",
   ]),
 ]);
 

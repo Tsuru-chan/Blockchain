@@ -1,39 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useHub } from "@/components/app-context";
-import { sha256Sync } from "@/lib/crypto/sha256";
-import { TabSegmented } from "@/components/lab/lab";
+import { dict } from "@/lib/i18n/dictionary";
 
-type MiningTab = "diff" | "sim" | "explorer" | "mempool" | "network";
+import { useEffect, useMemo, useState } from "react";
+import { useHub, type MiningTab } from "@/components/app-context";
+import { sha256Sync } from "@/lib/crypto/sha256";
+import { HashField, LabHeader, LabPanel, Stamp, TabSegmented } from "@/components/lab/lab";
 
 const ATTEMPTS = ["~16", "~256", "~4,096", "~65,536", "~1,048,576"];
 
 function DifficultyTab({ diff, setDiff }: { diff: number; setDiff: (d: number) => void }) {
   const { t } = useHub();
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div>
       <div className="mining-section-header">
         <div className="mining-section-suptitle text-cyan">
           {t("mining.networkSetting")}
         </div>
-        <h2 className="mining-section-title">{t("mining.diffTitle")}</h2>
-        <p className="mining-section-desc">{t("mining.diffDesc")}</p>
+        <h2 className="lab-tray-title">{t("mining.diffTitle")}</h2>
+        <p className="lab-tray-desc">{t("mining.diffDesc")}</p>
       </div>
       <div className="card config-card">
         <div className="label">{t("mining.chooseDiff")}</div>
-        <div className="diff-btns-row" style={{ marginBottom: 16 }}>
+        <div className="diff-btns-row mb-4">
           {[1, 2, 3, 4, 5].map((d) => (
             <button
               key={d}
-              className={`btn diff-btn ${diff === d ? "active" : ""}`}
+              aria-pressed={diff === d} className={`btn diff-btn ${diff === d ? "active" : ""}`}
               onClick={() => setDiff(d)}
-            >
+           >
               {d}
             </button>
           ))}
         </div>
-        <div style={{ fontSize: 14, marginBottom: 20 }}>
+        <div className="text-sm mb-6">
           {t("mining.currentDiff")} {diff} — {"0".repeat(diff)}xxxxxxxxxxxx
         </div>
         <div className="label">{t("mining.compareTarget")}</div>
@@ -51,7 +51,7 @@ function DifficultyTab({ diff, setDiff }: { diff: number; setDiff: (d: number) =
             </div>
           ))}
         </div>
-        <div className="diff-target-summary" style={{ marginTop: 16 }}>
+        <div className="diff-target-summary mt-4">
           <strong>{t("mining.rule")}</strong>
           <p>
             {t("mining.rulePre1")} <strong>{t("mining.ruleBold1")}</strong>
@@ -64,7 +64,7 @@ function DifficultyTab({ diff, setDiff }: { diff: number; setDiff: (d: number) =
   );
 }
 
-function SimulatorTab({ diff }: { diff: number }) {
+function SimulatorTab({ diff, setDiff }: { diff: number; setDiff: (value: number) => void }) {
   const { t } = useHub();
   const [data, setData] = useState("HubBlock");
   const [nonce, setNonce] = useState(0);
@@ -104,7 +104,7 @@ function SimulatorTab({ diff }: { diff: number }) {
         const h = sha256Sync(`${input}${n}`);
         n++;
         const now = performance.now();
-        if (now - lastUpdate > 90 || h.startsWith(target)) {
+        if (now - lastUpdate> 90 || h.startsWith(target)) {
           lastUpdate = now;
           setNonce(n);
           setHash(h);
@@ -148,18 +148,18 @@ function SimulatorTab({ diff }: { diff: number }) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div className="simulator-layout">
       <div className="mining-section-header">
         <div className="mining-section-suptitle text-cyan">{t("mining.pow")}</div>
-        <h2 className="mining-section-title">{t("mining.simTitle")}</h2>
-        <p className="mining-section-desc">{t("mining.simDesc")}</p>
+        <h2 className="lab-tray-title">{t("mining.simTitle")}</h2>
+        <p className="lab-tray-desc">{t("mining.simDesc")}</p>
       </div>
       <div className="card config-card">
-        <div className="grid-2" style={{ gap: 24, marginBottom: 20 }}>
+        <div className="grid gap-6 mb-6">
           <div>
-            <div className="label">{t("mining.blockData")}</div>
+            <label className="label" htmlFor="mining-data">{t("mining.blockData")}</label>
             <input
-              className="inp"
+              id="mining-data" className="inp"
               placeholder={t("mining.blockDataPlaceholder")}
               value={data}
               onChange={(e) => setData(e.target.value)}
@@ -169,6 +169,7 @@ function SimulatorTab({ diff }: { diff: number }) {
             <div className="label">
               {t("mining.diffLabel")} {diff}
             </div>
+            <div className="diff-btns-row mb-4" role="group" aria-label={t("ui.diff")}>{[1, 2, 3, 4, 5].map((value) => <button key={value} className={`btn btn-sm ${diff === value ? "btn-primary" : "btn-ghost"}`} aria-pressed={diff === value} onClick={() => setDiff(value)}>{value}</button>)}</div>
             <div className="config-diff-display">
               <span className="config-diff-zeros">{"0".repeat(diff)}</span>
               <span className="config-diff-rule">
@@ -180,13 +181,8 @@ function SimulatorTab({ diff }: { diff: number }) {
         <div className="config-actions">
           <button
             className={`btn ${mining ? "btn-stop-mine" : "btn-primary"}`}
-            style={
-              !mining
-                ? { boxShadow: "rgba(34, 211, 238, 0.2) 0px 0px 20px" }
-                : undefined
-            }
             onClick={start}
-          >
+         >
             {mining ? t("mining.stopMine") : t("mining.startMine")}
           </button>
           <button className="btn btn-ghost" onClick={reset}>
@@ -197,34 +193,26 @@ function SimulatorTab({ diff }: { diff: number }) {
 
       <div
         className="card anim-border live-mining-panel"
-        style={{ marginTop: 20, "--glow-color": "var(--cyan)" } as React.CSSProperties}
-      >
+
+     >
         <div className="nonce-display-area">
           <div className="nonce-label">{t("mining.nonceLabel")}</div>
           <div className="nonce-big-value">{nonce.toLocaleString()}</div>
-          {mining && (
-            <div className="mining-dots">
-              <span className="mining-dot"></span>
-              <span className="mining-dot"></span>
-              <span className="mining-dot"></span>
-            </div>
-          )}
+          <div className="mt-4" role="status"><Stamp tone={found !== null ? "valid" : "neutral"}>{t(mining ? "ui.running" : found !== null ? "ui.complete" : tries> 0 ? "ui.stopped" : "ui.ready")}</Stamp></div>
           {found !== null && (
             <div className="mining-success-text">
               {t("mining.foundHash")} {found.toLocaleString()} {t("mining.tries")}
             </div>
           )}
         </div>
-        <div className="live-hash-section" style={{ marginTop: 16 }}>
+        <div className="live-hash-section mt-4">
           <div className="label">{t("mining.currentHash")}</div>
-          <div className="live-hash-box">
-            <span className="mining-hash-live">{hash}</span>
-          </div>
+          <HashField hash={hash} highlightLeading={found !== null ? diff : 0} />
           <div className="live-target-info">
             {t("mining.targetLabel")} {"0".repeat(diff)}
           </div>
         </div>
-        <div className="live-stats-grid" style={{ marginTop: 16 }}>
+        <div className="live-stats-grid mt-4">
           <div className="live-stat-card">
             <div className="live-stat-val">{elapsed.toFixed(1)}s</div>
             <div className="live-stat-label">{t("mining.statTime")}</div>
@@ -245,11 +233,11 @@ function SimulatorTab({ diff }: { diff: number }) {
       </div>
 
       <div
-        className="anim-border mining-tip-card"
-        style={{ "--glow-color": "var(--cyan)", marginTop: 20 } as React.CSSProperties}
-      >
+        className="anim-border mining-tip-card mt-6"
+
+     >
         <div className="mining-tip-title">{t("mining.howItWorks")}</div>
-        <p className="mining-tip-desc">{t("mining.miningTip")}</p>
+        <p className="lab-tray-desc">{t("mining.miningTip")}</p>
       </div>
     </div>
   );
@@ -276,23 +264,6 @@ interface FullBlock {
   txs: BlockTx[];
   hash: string;
 }
-
-const EXPL_STR = {
-  vi: {
-    version: "Phiên bản",
-    transactions: "Giao dịch",
-    merkleRoot: "Merkle Root",
-    difficulty: "Độ khó",
-    coinbase: "Khối khởi tạo",
-  },
-  en: {
-    version: "Version",
-    transactions: "Transactions",
-    merkleRoot: "Merkle Root",
-    difficulty: "Difficulty",
-    coinbase: "Genesis block",
-  },
-};
 
 function blockTxId(tx: BlockTx): string {
   return sha256Sync(`${tx.from}|${tx.to}|${tx.amount}`);
@@ -330,7 +301,7 @@ function mineFullBlock(
     const hash = blockHash(header);
     if (hash.startsWith(target)) return { index, header, txs, hash };
     header.nonce++;
-    if (header.nonce > 5000000) return { index, header, txs, hash };
+    if (header.nonce> 5000000) return { index, header, txs, hash };
   }
 }
 
@@ -341,14 +312,14 @@ function validateFullChain(chain: FullBlock[]): boolean {
       return false;
     if (blockHash(b.header) !== b.hash) return false;
     if (!b.hash.startsWith("0".repeat(b.header.difficulty))) return false;
-    if (i > 0 && b.header.previousHash !== chain[i - 1].hash) return false;
+    if (i> 0 && b.header.previousHash !== chain[i - 1].hash) return false;
   }
   return true;
 }
 
 function ExplorerTab() {
   const { t, lang } = useHub();
-  const ex = EXPL_STR[lang];
+  const ex = dict[lang].blockExplorer as Record<string, string>;
   const EXPL_DIFF = 2;
   const [chain, setChain] = useState<FullBlock[]>(() => [
     mineFullBlock(0, "0".repeat(64), [{ from: "Network", to: "Alice", amount: 50 }], EXPL_DIFF),
@@ -396,13 +367,13 @@ function ExplorerTab() {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div>
       <div className="mining-section-header">
         <div className="mining-section-suptitle text-cyan">
           {t("mining.chainState")}
         </div>
-        <h2 className="mining-section-title">{t("mining.expTitle")}</h2>
-        <p className="mining-section-desc">{t("mining.expDesc")}</p>
+        <h2 className="lab-tray-title">{t("mining.expTitle")}</h2>
+        <p className="lab-tray-desc">{t("mining.expDesc")}</p>
       </div>
       <div className="chain-controls">
         <button className="btn btn-primary btn-sm" onClick={addBlock}>
@@ -411,12 +382,12 @@ function ExplorerTab() {
         <button className="btn btn-ghost btn-sm" onClick={reset}>
           {t("mining.resetBtn")}
         </button>
-        <span className={`chain-status-badge ${valid ? "chain-valid" : "chain-invalid"}`}>
+        <span role="status" className={`chain-status-badge ${valid ? "chain-valid" : "chain-invalid"}`}>
           <span className="chain-status-dot"></span>
           {valid ? t("mining.chainValid") : t("mining.chainInvalid")}
         </span>
       </div>
-      <div className="chain-scroll-area">
+      <div className="chain-scroll-area" tabIndex={0} role="region" aria-label={t("ui.explorer")}>
         <div className="chain-track">
           {chain.map((b, i) => {
             const ok =
@@ -433,7 +404,7 @@ function ExplorerTab() {
                     <span className="block-badge">
                       {b.index === 0 ? t("mining.genesis") : `${t("mining.blockStr")} #${b.index}`}
                     </span>
-                    <span className={`block-status-dot ${ok ? "" : "invalid"}`}></span>
+                    <Stamp tone={ok ? "valid" : "invalid"}>{t(ok ? "ui.valid" : "ui.invalid")}</Stamp>
                   </div>
                   <div className="block-field">
                     <span className="block-field-label">{ex.version}</span>
@@ -450,11 +421,11 @@ function ExplorerTab() {
                       {ex.transactions} ({b.txs.length})
                     </span>
                     <span
-                      className="block-field-value"
-                      style={{ fontFamily: "var(--mono)", fontSize: 11 }}
-                    >
+                      className="block-field-value font-mono text-[13px]"
+
+                   >
                       {b.txs.map((tx, ti) => (
-                        <span key={ti} style={{ display: "block" }}>
+                        <span key={ti} className="block">
                           {tx.from} → {tx.to}: {tx.amount}
                         </span>
                       ))}
@@ -462,8 +433,8 @@ function ExplorerTab() {
                   </div>
                   <div className="block-field">
                     <span className="block-field-label">{ex.merkleRoot}</span>
-                    <span className="block-field-value">
-                      {b.header.merkleRoot.slice(0, 10)}...
+                    <span className="block-field-value hash-value">
+                      {b.header.merkleRoot}
                     </span>
                   </div>
                   <div className="block-field">
@@ -474,11 +445,11 @@ function ExplorerTab() {
                   </div>
                   <div className="block-field">
                     <span className="block-field-label">{t("mining.hashStr")}</span>
-                    <span className="block-field-value">{b.hash.slice(0, 10)}...</span>
+                    <span className="block-field-value hash-value">{b.hash}</span>
                   </div>
                   <div className="block-field">
                     <span className="block-field-label">{t("mining.prevHashStr")}</span>
-                    <span className="block-field-value">{b.header.previousHash.slice(0, 10)}...</span>
+                    <span className="block-field-value hash-value">{b.header.previousHash}</span>
                   </div>
                   <div className="block-actions">
                     <button
@@ -487,14 +458,14 @@ function ExplorerTab() {
                         setTamperIdx(i);
                         setTamperTxs(b.txs.map((tx) => ({ ...tx })));
                       }}
-                    >
+                   >
                       {t("mining.tamperBtn")}
                     </button>
                     {!ok && (
                       <button
                         className="btn btn-ghost btn-sm block-btn restore"
                         onClick={() => restore(i)}
-                      >
+                     >
                         {t("mining.restoreBtn")}
                       </button>
                     )}
@@ -508,21 +479,22 @@ function ExplorerTab() {
       </div>
 
       {tamperIdx !== null && (
-        <div className="card" style={{ marginTop: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
+        <div className="card mt-6">
+          <h3 className="lab-tray-title">
             {t("mining.tamperTitle")} #{tamperIdx}
           </h3>
-          <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 12 }}>
+          <p className="lab-tray-desc">
             {t("mining.tamperDesc")}
           </p>
-          <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+          <div className="grid gap-2 mb-4">
             {tamperTxs.map((tx, ti) => (
-              <div key={ti} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "var(--text2)", flex: 1 }}>
+              <div key={ti} className="flex gap-2 items-center">
+                <span className="text-[13px] text-muted-foreground flex-1">
                   {tx.from} → {tx.to}
                 </span>
                 <input
-                  className="inp"
+                  className="inp [width:110px] [padding:8px_12px]"
+                  aria-label={`${t("ui.message")} ${ti + 1}`}
                   type="number"
                   min={0}
                   value={tx.amount}
@@ -533,12 +505,12 @@ function ExplorerTab() {
                       )
                     )
                   }
-                  style={{ width: 110, padding: "8px 12px" }}
+
                 />
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex gap-2">
             <button className="btn btn-primary btn-sm btn-tamper-submit" onClick={submitTamper}>
               {t("mining.tamperBlock")}
             </button>
@@ -546,7 +518,7 @@ function ExplorerTab() {
               {t("mining.cancelBtn")}
             </button>
           </div>
-          <p style={{ fontSize: 12, color: "var(--text3)", marginTop: 12 }}>
+          <p className="lab-tray-desc">
             {t("mining.tamperTip")}
           </p>
         </div>
@@ -556,41 +528,20 @@ function ExplorerTab() {
 }
 
 export function MiningView() {
-  const { t, lang } = useHub();
-  const [tab, setTab] = useState<MiningTab>("explorer");
+  const { t, miningTab: tab, setMiningTab: setTab } = useHub();
   const [diff, setDiff] = useState(3);
-  const tabLabel = (id: MiningTab) => {
-    if (id === "mempool") return "Mempool · P4";
-    if (id === "network") return lang === "vi" ? "Mạng lưới · P8–P9" : "Network · P8–P9";
-    if (id === "explorer") return `${t(`mining.tabs.${id}`)} · P2/P6`;
-    if (id === "sim") return `${t(`mining.tabs.${id}`)} · P7`;
-    return `${t(`mining.tabs.${id}`)} · P7`;
-  };
   const order: MiningTab[] = ["explorer", "mempool", "sim", "diff", "network"];
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <section className="lab-hero">
-        <p className="masthead-sub" style={{ margin: "0 0 10px" }}>
-          P2 · P4 · P6 · P7 · P8 · P9
-        </p>
-        <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)" }}>{t("mining.title")}</h1>
-        <p className="lab-lede" style={{ fontSize: 15 }}>
-          {t("mining.desc")}
-        </p>
-      </section>
-      <TabSegmented
-        ariaLabel="Tab khối và đào"
-        value={tab}
-        onChange={setTab}
-        options={order.map((id) => ({ id, label: tabLabel(id) }))}
-      />
-      <div>
+    <div className="lab-view">
+      <LabHeader title={t("ui.miningTitle")} desc={t("ui.miningDesc")} code="P2 / P4 / P6–P9" />
+      <TabSegmented id="mining" ariaLabel={t("ui.mining")} value={tab} onChange={setTab} options={order.map((id) => ({ id, label: t(`ui.${id}`) }))} />
+      <LabPanel id="mining" value={tab}>
         {tab === "diff" && <DifficultyTab diff={diff} setDiff={setDiff} />}
-        {tab === "sim" && <SimulatorTab diff={diff} />}
+        {tab === "sim" && <SimulatorTab diff={diff} setDiff={setDiff} />}
         {tab === "explorer" && <ExplorerTab />}
         {tab === "mempool" && <MempoolTab />}
         {tab === "network" && <NetworkTab />}
-      </div>
+      </LabPanel>
     </div>
   );
 }

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">
+  <rect width="480" height="360" rx="20" fill="#eef6f2"/>
+  <text x="40" y="46" font-family="Inter,Arial" font-weight="800" font-size="16" fill="#134e4a">Lightning · 3–7 TPS → hàng triệu off-chain</text>
+  <rect x="40" y="64" width="400" height="70" rx="14" fill="#fff" stroke="#34d399" stroke-width="2"/>
+  <text x="60" y="90" font-family="Inter,Arial" font-weight="700" font-size="13" fill="#0f766e">1 · Mở kênh: khóa BTC vào multisig chung (L1)</text>
+  <text x="60" y="112" font-family="monospace" font-size="12" fill="#334155">Alice 5 BTC + Bob 5 BTC → kênh 10 BTC</text>
+  <rect x="40" y="146" width="400" height="70" rx="14" fill="#134e4a"/>
+  <text x="60" y="172" font-family="Inter,Arial" font-weight="700" font-size="13" fill="#fff">2 · Giao dịch tức thời, phí ≈ 0 (off-chain)</text>
+  <text x="60" y="194" font-family="monospace" font-size="12" fill="#a7f3d0">cập nhật bảng cân đối nội bộ · không ghi chuỗi</text>
+  <rect x="40" y="228" width="400" height="70" rx="14" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="60" y="254" font-family="Inter,Arial" font-weight="700" font-size="13" fill="#92400e">3 · Đóng kênh: chỉ số dư cuối lên L1</text>
+  <text x="60" y="276" font-family="monospace" font-size="12" fill="#92400e">gian lận trạng thái cũ → mất toàn bộ tiền</text>
+</svg>

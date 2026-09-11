@@ -1,5 +1,7 @@
 "use client";
 
+import { dict } from "@/lib/i18n/dictionary";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHub } from "@/components/app-context";
 import {
@@ -15,79 +17,6 @@ const NODES = [
   { id: "node2", port: 4102 },
   { id: "node3", port: 4103 },
 ];
-
-const STR = {
-  vi: {
-    suptitle: "P8 Network & P9 Consensus",
-    title: "Mạng lưới Full Node",
-    desc: "3 node thật chạy multi-process trên localhost (mỗi node 1 port). Đăng ký peer, broadcast Tx/Block, mine + đồng thuận longest-chain — tất cả trực tiếp.",
-    offlineTitle: "Chưa thấy node nào online",
-    offlineDesc: "Mở terminal tại thư mục dự án và chạy lệnh sau để khởi động cụm 3 node, rồi nhấn Làm mới:",
-    refresh: "Làm mới",
-    registry: "Đăng ký Node (Registry)",
-    colNode: "Node ID",
-    colAddr: "IP:port",
-    colStatus: "Trạng thái",
-    colHeight: "Height",
-    colMempool: "Mempool",
-    colBest: "Best hash",
-    online: "ONLINE",
-    offline: "OFFLINE",
-    mine: "Mine",
-    sync: "Sync",
-    syncAll: "Sync toàn mạng",
-    createTx: "Tạo & broadcast Transaction",
-    wallet: "Ví mạng (ECDSA, tự sinh)",
-    to: "Đến",
-    amount: "Số lượng",
-    via: "Gửi tới node",
-    broadcast: "Ký & Broadcast",
-    addPeer: "Đăng ký peer mới",
-    peerId: "ID",
-    peerHost: "Host",
-    peerPort: "Port",
-    onNode: "Trên node",
-    addPeerBtn: "Đăng ký",
-    log: "Nhật ký mạng",
-    logEmpty: "Chưa có sự kiện. Hãy broadcast Tx rồi Mine.",
-    mining: "Đang mine…",
-  },
-  en: {
-    suptitle: "P8 Network & P9 Consensus",
-    title: "Full Node Network",
-    desc: "3 real multi-process nodes on localhost (one port each). Peer registry, Tx/Block broadcast, mining + longest-chain consensus — all live.",
-    offlineTitle: "No nodes online",
-    offlineDesc: "Open a terminal in the project folder and run this to start the 3-node cluster, then hit Refresh:",
-    refresh: "Refresh",
-    registry: "Node Registry",
-    colNode: "Node ID",
-    colAddr: "IP:port",
-    colStatus: "Status",
-    colHeight: "Height",
-    colMempool: "Mempool",
-    colBest: "Best hash",
-    online: "ONLINE",
-    offline: "OFFLINE",
-    mine: "Mine",
-    sync: "Sync",
-    syncAll: "Sync all",
-    createTx: "Create & broadcast Transaction",
-    wallet: "Network wallet (ECDSA, auto-generated)",
-    to: "To",
-    amount: "Amount",
-    via: "Send to node",
-    broadcast: "Sign & Broadcast",
-    addPeer: "Register new peer",
-    peerId: "ID",
-    peerHost: "Host",
-    peerPort: "Port",
-    onNode: "On node",
-    addPeerBtn: "Register",
-    log: "Network log",
-    logEmpty: "No events yet. Broadcast a Tx, then Mine.",
-    mining: "Mining…",
-  },
-};
 
 interface NodeStatus {
   online: boolean;
@@ -117,8 +46,8 @@ async function post(port: number, path: string, body: unknown = {}) {
 }
 
 export function NetworkTab() {
-  const { lang } = useHub();
-  const s = STR[lang];
+  const { lang, t } = useHub();
+  const s = dict[lang].network as Record<string, string>;
   const [status, setStatus] = useState<Record<number, NodeStatus>>({});
   const [log, setLog] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
@@ -265,62 +194,44 @@ export function NetworkTab() {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
+    <div>
       <div className="mining-section-header">
         <div className="mining-section-suptitle text-cyan">{s.suptitle}</div>
-        <h2 className="mining-section-title">{s.title}</h2>
-        <p className="mining-section-desc">{s.desc}</p>
+        <h2 className="lab-tray-title">{s.title}</h2>
+        <p className="lab-tray-desc">{s.desc}</p>
       </div>
 
-      {!anyOnline && (
-        <div className="card" style={{ marginBottom: 16, borderColor: "rgba(251,191,36,0.4)" }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>⚠️ {s.offlineTitle}</h3>
-          <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 8 }}>{s.offlineDesc}</p>
-          <code
-            style={{
-              fontFamily: "var(--mono)",
-              fontSize: 13,
-              background: "var(--bg1)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              padding: "8px 14px",
-              display: "inline-block",
-            }}
-          >
-            npm run network
-          </code>
-        </div>
-      )}
+      {!anyOnline && <div className="network-offline" role="status"><h3 className="lab-tray-title">{t("ui.networkOffline")}</h3><p>{t("ui.networkGuide")}</p></div>}
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700 }}>{s.registry}</h3>
-          <div style={{ display: "flex", gap: 8 }}>
+      <div className="card mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h3 className="lab-tray-title">{s.registry}</h3>
+          <div className="flex gap-2">
             <button className="btn btn-ghost btn-sm" onClick={refresh}>
               {s.refresh}
             </button>
             <button
               className="btn btn-ghost btn-sm"
-              disabled={!!busy}
+              disabled={!!busy || !anyOnline}
               onClick={async () => {
                 for (const n of NODES) await doSync(n.port);
               }}
-            >
+           >
               {s.syncAll}
             </button>
           </div>
         </div>
-        <div style={{ overflowX: "auto" }}>
+        <div className="table-scroll" tabIndex={0} role="region" aria-label={t("ui.networkTable")}>
           <table className="rsa-compare-table">
             <thead>
               <tr>
-                <th>{s.colNode}</th>
-                <th>{s.colAddr}</th>
-                <th>{s.colStatus}</th>
-                <th>{s.colHeight}</th>
-                <th>{s.colMempool}</th>
-                <th>{s.colBest}</th>
-                <th></th>
+                <th scope="col">{s.colNode}</th>
+                <th scope="col">{s.colAddr}</th>
+                <th scope="col">{s.colStatus}</th>
+                <th scope="col">{s.colHeight}</th>
+                <th scope="col">{s.colMempool}</th>
+                <th scope="col">{s.colBest}</th>
+                <th scope="col"><span className="sr-only">{t("ui.open")}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -330,31 +241,31 @@ export function NetworkTab() {
                 return (
                   <tr key={n.port}>
                     <td><strong>{st?.id ?? n.id}</strong></td>
-                    <td style={{ fontFamily: "var(--mono)", fontSize: 12 }}>127.0.0.1:{n.port}</td>
+                    <td className="font-mono text-[13px]">127.0.0.1:{n.port}</td>
                     <td>
                       <span className={`badge ${on ? "badge-green" : "badge-amber"}`}>
                         {on ? s.online : s.offline}
                       </span>
                     </td>
-                    <td style={{ fontFamily: "var(--mono)" }}>{on ? st.height : "—"}</td>
-                    <td style={{ fontFamily: "var(--mono)" }}>{on ? st.mempool : "—"}</td>
-                    <td style={{ fontFamily: "var(--mono)", fontSize: 11 }}>
+                    <td className="font-mono">{on ? st.height : "—"}</td>
+                    <td className="font-mono">{on ? st.mempool : "—"}</td>
+                    <td className="font-mono text-[13px]">
                       {on ? `${st.bestHash?.slice(0, 16)}…` : "—"}
                     </td>
                     <td>
-                      <div style={{ display: "flex", gap: 6 }}>
+                      <div className="flex flex-wrap gap-2">
                         <button
                           className="btn btn-primary btn-sm"
                           disabled={!on || !!busy}
                           onClick={() => doMine(n.port)}
-                        >
+                       >
                           {busy === `mine${n.port}` ? s.mining : s.mine}
                         </button>
                         <button
                           className="btn btn-ghost btn-sm"
                           disabled={!on || !!busy}
                           onClick={() => doSync(n.port)}
-                        >
+                       >
                           {s.sync}
                         </button>
                       </div>
@@ -367,23 +278,23 @@ export function NetworkTab() {
         </div>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 16 }}>
+      <div className="grid-2 mb-4">
         <div className="card">
-          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{s.createTx}</h3>
-          <p style={{ fontSize: 12, color: "var(--text2)", marginBottom: 12 }}>
+          <h3 className="lab-tray-title">{s.createTx}</h3>
+          <p className="lab-tray-desc">
             {s.wallet}:{" "}
-            <span style={{ fontFamily: "var(--mono)", fontSize: 11 }}>
+            <span className="font-mono text-[13px]">
               {wallet ? `${wallet.pubHex.slice(0, 26)}…` : "…"}
             </span>
           </p>
-          <div className="grid-3" style={{ marginBottom: 12 }}>
+          <div className="grid-3 mb-4">
             <div>
-              <div className="label">{s.to}</div>
-              <input className="inp" value={to} onChange={(e) => setTo(e.target.value)} />
+              <label className="label" htmlFor="networktab-to">{s.to}</label>
+              <input id="networktab-to" className="inp" value={to} onChange={(e) => setTo(e.target.value)} />
             </div>
             <div>
-              <div className="label">{s.amount}</div>
-              <input
+              <label className="label" htmlFor="networktab-amount">{s.amount}</label>
+              <input id="networktab-amount"
                 className="inp"
                 type="number"
                 min={1}
@@ -392,8 +303,8 @@ export function NetworkTab() {
               />
             </div>
             <div>
-              <div className="label">{s.via}</div>
-              <select className="inp" value={viaPort} onChange={(e) => setViaPort(Number(e.target.value))}>
+              <label className="label" htmlFor="networktab-via">{s.via}</label>
+              <select id="networktab-via" className="inp" value={viaPort} onChange={(e) => setViaPort(Number(e.target.value))}>
                 {NODES.map((n) => (
                   <option key={n.port} value={n.port}>
                     {n.id} :{n.port}
@@ -404,26 +315,26 @@ export function NetworkTab() {
           </div>
           <button
             className="btn btn-primary btn-sm"
-            disabled={!wallet || !!busy}
+            disabled={!wallet || !!busy || !status[viaPort]?.online}
             onClick={doBroadcast}
-          >
+         >
             {s.broadcast}
           </button>
         </div>
         <div className="card">
-          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>{s.addPeer}</h3>
-          <div className="grid-3" style={{ marginBottom: 12 }}>
+          <h3 className="lab-tray-title">{s.addPeer}</h3>
+          <div className="grid-3 mb-4">
             <div>
-              <div className="label">{s.peerId}</div>
-              <input className="inp" value={peerId} onChange={(e) => setPeerId(e.target.value)} />
+              <label className="label" htmlFor="networktab-peerId">{s.peerId}</label>
+              <input id="networktab-peerId" className="inp" value={peerId} onChange={(e) => setPeerId(e.target.value)} />
             </div>
             <div>
-              <div className="label">{s.peerHost}</div>
-              <input className="inp" value={peerHost} onChange={(e) => setPeerHost(e.target.value)} />
+              <label className="label" htmlFor="networktab-peerHost">{s.peerHost}</label>
+              <input id="networktab-peerHost" className="inp" value={peerHost} onChange={(e) => setPeerHost(e.target.value)} />
             </div>
             <div>
-              <div className="label">{s.peerPort}</div>
-              <input
+              <label className="label" htmlFor="networktab-peerPort">{s.peerPort}</label>
+              <input id="networktab-peerPort"
                 className="inp"
                 type="number"
                 value={peerPort}
@@ -431,10 +342,10 @@ export function NetworkTab() {
               />
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "end" }}>
+          <div className="flex flex-wrap gap-2 [align-items:end]">
             <div>
-              <div className="label">{s.onNode}</div>
-              <select className="inp" value={peerOn} onChange={(e) => setPeerOn(Number(e.target.value))}>
+              <label className="label" htmlFor="networktab-onNode">{s.onNode}</label>
+              <select id="networktab-onNode" className="inp" value={peerOn} onChange={(e) => setPeerOn(Number(e.target.value))}>
                 {NODES.map((n) => (
                   <option key={n.port} value={n.port}>
                     {n.id} :{n.port}
@@ -442,7 +353,7 @@ export function NetworkTab() {
                 ))}
               </select>
             </div>
-            <button className="btn btn-secondary btn-sm" disabled={!!busy} onClick={doAddPeer}>
+            <button className="btn btn-secondary btn-sm" disabled={!!busy || !anyOnline} onClick={doAddPeer}>
               {s.addPeerBtn}
             </button>
           </div>
@@ -450,20 +361,13 @@ export function NetworkTab() {
       </div>
 
       <div className="card">
-        <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>{s.log}</h3>
-        {log.length === 0 && <p style={{ fontSize: 13, color: "var(--text3)" }}>{s.logEmpty}</p>}
+        <h3 className="lab-tray-title">{s.log}</h3>
+        {log.length === 0 && <p className="lab-tray-desc">{s.logEmpty}</p>}
         <div
-          style={{
-            display: "grid",
-            gap: 4,
-            fontFamily: "var(--mono)",
-            fontSize: 12,
-            maxHeight: 260,
-            overflowY: "auto",
-          }}
-        >
+          role="log" aria-label={s.log} className="grid gap-1 font-mono text-[13px] [max-height:260px] overflow-y-auto"
+       >
           {log.map((l, i) => (
-            <div key={i} style={{ color: i === 0 ? "var(--text)" : "var(--text2)" }}>
+            <div key={i} className={i === 0 ? "text-ink" : "text-muted-foreground"}>
               {l}
             </div>
           ))}

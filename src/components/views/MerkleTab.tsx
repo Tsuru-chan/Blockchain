@@ -1,43 +1,15 @@
 "use client";
 
+import { dict } from "@/lib/i18n/dictionary";
+
 import { useEffect, useMemo, useState } from "react";
+import { LabNotes } from "@/components/lab/lab";
 import { useHub } from "@/components/app-context";
 import { sha256Sync } from "@/lib/crypto/sha256";
 import {
   getMerkleProof,
   verifyMerkleProof,
 } from "@/lib/crypto/blockchain";
-
-const PROOF_STR = {
-  vi: {
-    title: "Chứng minh Merkle (Merkle Proof)",
-    desc: "Chọn một giao dịch để sinh proof — dãy hash anh em theo từng tầng. Người xác minh chỉ cần leaf + proof là tính lại được Root, không cần toàn bộ cây.",
-    select: "Chọn giao dịch",
-    leaf: "Leaf (SHA-256 của Tx)",
-    verify: "Xác minh Proof",
-    valid: "Proof HỢP LỆ — Tx thuộc về Merkle Root này",
-    invalid: "Proof KHÔNG hợp lệ",
-    left: "TRÁI",
-    right: "PHẢI",
-    dup: "nhân đôi",
-    computedRoot: "Root tính lại từ Proof",
-    expectedRoot: "Root kỳ vọng",
-  },
-  en: {
-    title: "Merkle Proof",
-    desc: "Pick a transaction to generate its proof — the sibling hashes level by level. A verifier only needs the leaf + proof to recompute the Root, without the whole tree.",
-    select: "Select transaction",
-    leaf: "Leaf (SHA-256 of Tx)",
-    verify: "Verify Proof",
-    valid: "Proof VALID — this Tx belongs to the Merkle Root",
-    invalid: "Proof INVALID",
-    left: "LEFT",
-    right: "RIGHT",
-    dup: "duplicated",
-    computedRoot: "Root recomputed from Proof",
-    expectedRoot: "Expected Root",
-  },
-};
 
 interface MerkleNode {
   id: string;
@@ -65,7 +37,7 @@ function buildMerkleTree(txs: string[]): MerkleTree {
   }));
   const levels: MerkleNode[][] = [level];
   let depth = 0;
-  while (level.length > 1) {
+  while (level.length> 1) {
     depth++;
     const next: MerkleNode[] = [];
     for (let i = 0; i < level.length; i += 2) {
@@ -101,9 +73,9 @@ export function MerkleTab() {
   const [error, setError] = useState("");
   const [proofIdx, setProofIdx] = useState(0);
   const [proofOk, setProofOk] = useState<boolean | null>(null);
-  const ps = PROOF_STR[lang];
+  const ps = dict[lang].merkleProof as Record<string, string>;
   const tree = useMemo(
-    () => (built && txs.length > 0 ? buildMerkleTree(txs) : null),
+    () => (built && txs.length> 0 ? buildMerkleTree(txs) : null),
     [built, txs]
   );
 
@@ -114,7 +86,7 @@ export function MerkleTab() {
   const proofTxIdx = Math.min(proofIdx, txs.length - 1);
   const proof = useMemo(
     () =>
-      proofLevels.length > 1
+      proofLevels.length> 1
         ? getMerkleProof(proofLevels, Math.max(0, proofTxIdx))
         : [],
     [proofLevels, proofTxIdx]
@@ -147,16 +119,18 @@ export function MerkleTab() {
   const updateTx = (i: number, v: string) => {
     setTxs((p) => p.map((x, j) => (j === i ? v : x)));
     setBuilt(false);
+    setSelected(null);
     setProofOk(null);
   };
   const addTx = () => {
-    if (txs.length >= 16) {
+    if (txs.length>= 16) {
       setError(t("merkle.errorMaxReached"));
       return;
     }
     setError("");
     setTxs((p) => [...p, `Tx ${p.length + 1}`]);
     setBuilt(false);
+    setSelected(null);
     setProofOk(null);
   };
   const removeTx = (i: number) => {
@@ -168,11 +142,12 @@ export function MerkleTab() {
     setTxs((p) => p.filter((_, j) => j !== i));
     setBuilt(false);
     setSelected(null);
+    setSelected(null);
     setProofOk(null);
   };
 
   const maxNodes = Math.max(1, ...(tree?.levels ?? []).map((l) => l.length));
-  const nodeW = 150 * zoom;
+  const nodeW = Math.max(160, 190 * zoom);
   const levelH = 110 * zoom;
   const width = Math.max(560, maxNodes * (nodeW + 24));
   const height = (tree?.levels.length ?? 1) * levelH + 130;
@@ -184,112 +159,68 @@ export function MerkleTab() {
   };
 
   const nodeColor = (levelIdx: number) => {
-    if (!tree) return "var(--cyan)";
-    if (levelIdx === tree.levels.length - 1) return "#fbbf24";
-    if (levelIdx === 0) return "#38bdf8";
-    return "#c084fc";
+    if (!tree) return "var(--ink)";
+    if (levelIdx === tree.levels.length - 1) return "var(--moss)";
+    if (levelIdx === 0) return "var(--slate)";
+    return "var(--ink)";
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>
-          🌳 {t("merkle.theoryTitle")}
-        </h3>
-        <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 16 }}>
-          {t("merkle.theorySubtitle")}
-        </p>
-        <p
-          style={{
-            fontSize: 14,
-            color: "var(--text2)",
-            lineHeight: 1.8,
-            marginBottom: 16,
-          }}
-        >
-          {t("merkle.theoryDescPlain")}
-        </p>
-        <div className="grid-3">
-          {[
-            { icon: "🍃", title: t("merkle.leafNode"), desc: t("merkle.leafNodeDesc") },
-            { icon: "🔗", title: t("merkle.parentNode"), desc: t("merkle.parentNodeDesc") },
-            { icon: "👑", title: t("merkle.merkleRoot"), desc: t("merkle.merkleRootDesc") },
-          ].map((r) => (
-            <div
-              key={r.title}
-              style={{
-                background: "var(--bg1)",
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                padding: "14px 16px",
-              }}
-            >
-              <div style={{ fontSize: 20 }}>{r.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{r.title}</div>
-              <div style={{ fontSize: 12, color: "var(--text2)" }}>{r.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
+    <div className="lab-stack">
       <div className="merkle-dashboard">
-        <div className="card merkle-sidebar" style={{ overflowY: "auto" }}>
-          <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>
+        <div className="card merkle-sidebar overflow-y-auto">
+          <h2 className="lab-tray-title">
             {t("merkle.blockDataTitle")}
-          </h4>
-          <p style={{ fontSize: 12, color: "var(--text2)", marginBottom: 14 }}>
+          </h2>
+          <p className="lab-tray-desc">
             {t("merkle.blockDataDesc")}
           </p>
-          <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+          <div className="grid gap-2 mb-4">
             {txs.map((tx, i) => (
-              <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <div key={i} className="flex gap-2 items-center">
                 <span
-                  style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: 11,
-                    color: "var(--text3)",
-                    width: 18,
-                  }}
-                >
+                  className="font-mono text-[13px] text-muted-foreground [width:18px]"
+               >
                   {i + 1}
                 </span>
                 <input
-                  className="inp"
-                  style={{ padding: "8px 12px", fontSize: 12 }}
+                  aria-label={`${t("ui.txInput")} ${i + 1}`}
+                  className="inp [padding:8px_12px] text-base"
+
                   value={tx}
                   placeholder={t("merkle.transactionPlaceholder")}
                   onChange={(e) => updateTx(i, e.target.value)}
                 />
                 <button
                   className="btn btn-ghost btn-sm"
-                  title={t("merkle.removeTitle")}
+                  aria-label={`${t("ui.removeTx")} ${i + 1}`}
                   onClick={() => removeTx(i)}
-                >
+               >
                   ×
                 </button>
               </div>
             ))}
           </div>
           <button
-            className="btn btn-ghost btn-sm"
-            style={{ width: "100%", marginBottom: 8 }}
+            className="btn btn-ghost btn-sm w-full mb-2"
+
             onClick={addTx}
-          >
+         >
             {t("merkle.addTransaction")}
           </button>
-          <div style={{ fontSize: 11, color: "var(--text3)", marginBottom: 12 }}>
+          <div className="text-[13px] text-muted-foreground mb-4">
             {t("merkle.transactionCount_other").replace("{{count}}", String(txs.length))}
             {" · "}
             {t("merkle.maxTransactions")}
           </div>
           {error && (
-            <div className="login-modal-error" style={{ marginBottom: 12 }}>
+            <div role="alert" className="login-modal-error mb-4">
               {error}
             </div>
           )}
           <button
-            className="btn btn-primary"
-            style={{ width: "100%" }}
+            className="btn btn-primary w-full"
+
             onClick={() => {
               if (txs.some((x) => !x.trim())) {
                 setError(t("merkle.errorEmptyTransaction"));
@@ -300,97 +231,68 @@ export function MerkleTab() {
               setProofOk(null);
               setBuilt(true);
             }}
-          >
+         >
             {t("merkle.buildTree")}
           </button>
           {tree && (
             <div
-              style={{
-                marginTop: 14,
-                padding: 12,
-                background: "var(--bg1)",
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-              }}
-            >
+              className="mt-4 p-4 bg-paper border rounded-md"
+           >
               <div className="label">{t("merkle.merkleRootLabel")}</div>
               <div
-                style={{
-                  fontFamily: "var(--mono)",
-                  fontSize: 11,
-                  color: "var(--amber)",
-                  wordBreak: "break-all",
-                }}
-              >
+                className="font-mono text-[13px] text-moss break-all"
+             >
                 {tree.root}
               </div>
             </div>
           )}
         </div>
 
-        <div className="card merkle-canvas-area" style={{ overflow: "auto" }}>
+        <div className="card merkle-canvas-area">
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 8,
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            <h4 style={{ fontSize: 15, fontWeight: 700 }}>{t("merkle.title")}</h4>
-            <div style={{ display: "flex", gap: 6 }}>
+            className="flex items-center justify-between mb-2 flex-wrap gap-2"
+         >
+            <h2 className="lab-tray-title">{t("merkle.title")}</h2>
+            <div className="flex gap-2">
               <button
                 className="btn btn-ghost btn-sm"
-                title={t("merkle.zoomOut")}
+                aria-label={t("ui.zoomOut")}
                 onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))}
-              >
+             >
                 −
               </button>
               <button
                 className="btn btn-ghost btn-sm"
-                title={t("merkle.resetView")}
+                aria-label={t("ui.resetZoom")}
                 onClick={() => setZoom(1)}
-              >
-                1×
+             >
+                {zoom.toFixed(1)}×
               </button>
               <button
                 className="btn btn-ghost btn-sm"
-                title={t("merkle.zoomIn")}
+                aria-label={t("ui.zoomIn")}
                 onClick={() => setZoom((z) => Math.min(2, +(z + 0.2).toFixed(2)))}
-              >
+             >
                 +
               </button>
             </div>
           </div>
-          <p style={{ fontSize: 12, color: "var(--text3)", marginBottom: 12 }}>
-            {t("merkle.subtitle")}
+          <p className="lab-tray-desc">
+            {t("ui.merkleLegend")}
           </p>
           {!tree && (
             <div
-              style={{
-                height: 300,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--text3)",
-                fontSize: 13,
-                border: "1px dashed var(--border)",
-                borderRadius: 12,
-                padding: 24,
-                textAlign: "center",
-              }}
-            >
+              className="[height:300px] flex items-center [justify-content:center] text-muted-foreground text-[13px] [border:1px_dashed_var(--border)] rounded-md [padding:24px] [text-align:center]"
+           >
               {t("merkle.emptyState")}
             </div>
           )}
           {tree && (
-            <svg
+            <div className="merkle-scroll" tabIndex={0} role="region" aria-label={t("merkle.title")}><svg role="group" aria-label={t("merkle.title")}
               width={width}
               height={height}
-              style={{ minWidth: "100%", display: "block" }}
-            >
+              className="min-w-full block"
+           >
               {tree.levels.map((level, li) =>
                 level.map((n, ni) => {
                   if (li === 0) return null;
@@ -398,11 +300,11 @@ export function MerkleTab() {
                   const prev = tree.levels[li - 1];
                   const leftIdx = ni * 2;
                   const rightIdx = Math.min(ni * 2 + 1, prev.length - 1);
-                  return [leftIdx, rightIdx].map((ci) => {
+                  return [leftIdx, rightIdx].map((ci, childIndex) => {
                     const child = nodePos(li - 1, ci, prev.length);
                     return (
                       <line
-                        key={`${n.id}-${ci}`}
+                        key={`${n.id}-${ci}-${childIndex}`}
                         x1={parent.x}
                         y1={parent.y - 22}
                         x2={child.x}
@@ -424,33 +326,33 @@ export function MerkleTab() {
                   return (
                     <g
                       key={n.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${isRoot ? t("merkle.levelRoot") : li === 0 ? t("merkle.levelLeaf") : t("merkle.levelN").replace("{{n}}", String(li))} ${ni + 1}: ${n.hash}`}
+                      aria-pressed={isSel}
                       onClick={() => setSelected(n)}
-                      style={{ cursor: "pointer" }}
-                    >
+                      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(n); } }}
+                      className="merkle-node"
+                   >
                       <rect
                         x={x - nodeW / 2}
                         y={y - 22}
                         width={nodeW}
                         height={44}
                         rx={10}
-                        fill="var(--bg2)"
+                        fill="var(--bg1)"
                         stroke={color}
                         strokeWidth={isSel ? 3 : isRoot ? 2.5 : 1.5}
-                        style={{
-                          filter: isRoot
-                            ? `drop-shadow(0 0 10px ${color}66)`
-                            : undefined,
-                        }}
                       />
                       <text
                         x={x}
                         y={y - 2}
                         textAnchor="middle"
                         fill={color}
-                        fontSize={10}
+                        fontSize={13}
                         fontFamily="var(--mono)"
                         fontWeight={700}
-                      >
+                     >
                         {isRoot
                           ? t("merkle.levelRoot")
                           : li === 0
@@ -462,28 +364,21 @@ export function MerkleTab() {
                         y={y + 13}
                         textAnchor="middle"
                         fill="var(--text)"
-                        fontSize={10}
+                        fontSize={13}
                         fontFamily="var(--mono)"
-                      >
+                     >
                         {n.hash.slice(0, 12)}...
                       </text>
                     </g>
                   );
                 })
               )}
-            </svg>
+            </svg></div>
           )}
           {selected && (
             <div
-              style={{
-                marginTop: 12,
-                padding: 14,
-                background: "var(--bg1)",
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                fontSize: 12,
-              }}
-            >
+              className="mt-4 p-4 bg-paper border rounded-md text-[13px]"
+           >
               <div className="label">
                 {selected.level === 0
                   ? t("merkle.nodeTypeLeaf")
@@ -492,41 +387,37 @@ export function MerkleTab() {
                     : t("merkle.nodeTypeInternal")}
               </div>
               {selected.label !== undefined && (
-                <div style={{ marginBottom: 8 }}>
-                  <span style={{ color: "var(--text3)" }}>
+                <div className="mb-2">
+                  <span className="text-muted-foreground">
                     {t("merkle.panelTransaction")}:{" "}
                   </span>
-                  <span style={{ fontFamily: "var(--mono)" }}>{selected.label}</span>
+                  <span className="font-mono">{selected.label}</span>
                 </div>
               )}
-              <div style={{ marginBottom: 8 }}>
-                <span style={{ color: "var(--text3)" }}>
+              <div className="mb-2">
+                <span className="text-muted-foreground">
                   {t("merkle.panelShaHash")}:{" "}
                 </span>
                 <span
-                  style={{
-                    fontFamily: "var(--mono)",
-                    color: "var(--cyan)",
-                    wordBreak: "break-all",
-                  }}
-                >
+                  className="font-mono text-ink break-all"
+               >
                   {selected.hash}
                 </span>
               </div>
               {selected.left && (
-                <div style={{ marginBottom: 8 }}>
-                  <div style={{ color: "var(--text3)", marginBottom: 4 }}>
+                <div className="mb-2">
+                  <div className="text-muted-foreground mb-1">
                     {t("merkle.panelChildHashes")}:
                   </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: 11 }}>
+                  <div className="font-mono text-[13px]">
                     <div>
-                      <span style={{ color: "var(--green)" }}>
+                      <span className="text-moss">
                         {t("merkle.panelLeft")}:{" "}
                       </span>
                       {selected.left.slice(0, 24)}...
                     </div>
                     <div>
-                      <span style={{ color: "var(--blue)" }}>
+                      <span className="[color:var(--blue)]">
                         {selected.duplicated
                           ? t("merkle.panelDuplicate")
                           : t("merkle.panelRight") + ": "}
@@ -535,8 +426,8 @@ export function MerkleTab() {
                       ...
                     </div>
                   </div>
-                  <div style={{ marginTop: 8, color: "var(--text2)" }}>
-                    <span style={{ color: "var(--text3)" }}>
+                  <div className="mt-2 text-muted-foreground">
+                    <span className="text-muted-foreground">
                       {t("merkle.panelHowComputed")}:{" "}
                     </span>
                     SHA-256({t("merkle.panelLeft")} + {t("merkle.panelRight")})
@@ -544,7 +435,7 @@ export function MerkleTab() {
                 </div>
               )}
               {selected.level === 0 && (
-                <div style={{ color: "var(--text2)" }}>
+                <div className="text-muted-foreground">
                   {t("merkle.explLeaf").replace("{{label}}", selected.label ?? "")}
                 </div>
               )}
@@ -554,69 +445,48 @@ export function MerkleTab() {
       </div>
 
       {tree && (
-        <div className="card" style={{ marginTop: 20 }}>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>
-            🔍 {ps.title}
-          </h3>
-          <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 16, lineHeight: 1.8 }}>
+        <div className="card mt-6">
+          <h2 className="lab-tray-title">
+            {ps.title}
+          </h2>
+          <p className="lab-tray-desc">
             {ps.desc}
           </p>
           <div className="label">{ps.select}</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          <div className="flex gap-2 flex-wrap mb-4">
             {txs.map((tx, i) => (
               <button
                 key={i}
+                aria-pressed={proofTxIdx === i}
                 className={`btn btn-sm ${proofTxIdx === i ? "btn-primary" : "btn-ghost"}`}
                 onClick={() => {
                   setProofIdx(i);
                   setProofOk(null);
                 }}
-              >
-                #{i + 1} {tx.length > 14 ? `${tx.slice(0, 14)}…` : tx}
+             >
+                #{i + 1} {tx.length> 14 ? `${tx.slice(0, 14)}…` : tx}
               </button>
             ))}
           </div>
           <div className="label">{ps.leaf}</div>
           <div
-            style={{
-              fontFamily: "var(--mono)",
-              fontSize: 12,
-              color: "var(--green)",
-              wordBreak: "break-all",
-              marginBottom: 12,
-            }}
-          >
+            className="font-mono text-[13px] text-moss break-all mb-4"
+         >
             {proofLeaf}
           </div>
-          <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+          <div className="grid gap-2 mb-4">
             {proof.map((st, i) => (
               <div
                 key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  background: "var(--bg1)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 10,
-                  padding: "8px 12px",
-                  fontSize: 12,
-                }}
-              >
+                className="flex flex-wrap items-center gap-3 bg-paper border rounded-md [padding:8px_12px] text-[13px]"
+             >
                 <span
-                  className="badge"
-                  style={{
-                    fontSize: 10,
-                    background: st.siblingIsLeft
-                      ? "rgba(56,189,248,0.15)"
-                      : "rgba(192,132,252,0.15)",
-                    color: st.siblingIsLeft ? "var(--green)" : "var(--cyan)",
-                  }}
-                >
+                  className={`badge ${st.siblingIsLeft ? "text-moss" : "text-ink"}`}
+               >
                   {st.siblingIsLeft ? ps.left : ps.right}
                   {st.duplicated ? ` (${ps.dup})` : ""}
                 </span>
-                <span style={{ fontFamily: "var(--mono)", color: "var(--text2)" }}>
+                <span className="font-mono text-muted-foreground break-all">
                   {st.sibling.slice(0, 28)}...
                 </span>
               </div>
@@ -629,42 +499,29 @@ export function MerkleTab() {
                 verifyMerkleProof(proofLeaf, proof, tree.root)
               )
             }
-          >
+         >
             {ps.verify}
           </button>
           {proofOk !== null && (
             <div
-              style={{
-                marginTop: 12,
-                padding: 12,
-                borderRadius: 10,
-                border: `1px solid ${proofOk ? "var(--green)" : "var(--red)"}`,
-                background: proofOk
-                  ? "rgba(56,189,248,0.08)"
-                  : "rgba(251,113,133,0.08)",
-                fontSize: 13,
-              }}
-            >
-              <strong style={{ color: proofOk ? "var(--green)" : "var(--red)" }}>
+              role="status" className={`mt-4 p-4 rounded-md border text-sm ${proofOk ? "border-moss text-moss" : "border-seal text-seal"}`}
+           >
+              <strong>
                 {proofOk ? `✓ ${ps.valid}` : `✗ ${ps.invalid}`}
               </strong>
               <div
-                style={{
-                  fontFamily: "var(--mono)",
-                  fontSize: 11,
-                  marginTop: 8,
-                  wordBreak: "break-all",
-                }}
-              >
-                <div style={{ color: "var(--text3)" }}>{ps.computedRoot}:</div>
-                <div style={{ color: "var(--cyan)" }}>{proofComputedRoot}</div>
-                <div style={{ color: "var(--text3)", marginTop: 4 }}>{ps.expectedRoot}:</div>
-                <div style={{ color: "var(--amber)" }}>{tree.root}</div>
+                className="font-mono text-[13px] mt-2 break-all"
+             >
+                <div className="text-muted-foreground">{ps.computedRoot}:</div>
+                <div className="text-ink">{proofComputedRoot}</div>
+                <div className="text-muted-foreground [margin-top:4px]">{ps.expectedRoot}:</div>
+                <div className="text-moss">{tree.root}</div>
               </div>
             </div>
           )}
         </div>
       )}
+      <LabNotes title={t("merkle.theoryTitle")}><p className="lab-tray-desc">{t("merkle.theoryDescPlain")}</p><dl className="grid gap-4">{["leafNode", "parentNode", "merkleRoot"].map((key) => <div key={key}><dt className="font-semibold">{t(`merkle.${key}`)}</dt><dd>{t(`merkle.${key}Desc`)}</dd></div>)}</dl></LabNotes>
     </div>
   );
 }

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">
+  <rect width="480" height="360" rx="20" fill="#0f2b26"/>
+  <text x="40" y="50" font-family="monospace" font-size="14" fill="#a7f3d0">private d · 256-bit ─▶ Q = d × G ─▶ address</text>
+  <g font-family="monospace" font-size="12">
+    <rect x="40" y="80" width="400" height="54" rx="12" fill="#132f3a" stroke="#34d399"/>
+    <text x="60" y="102" fill="#5eead4">d  = 9f2c … 77a1  (bí mật tuyệt đối)</text>
+    <text x="60" y="122" fill="#e2e8f0">Q  = d × G trên secp256k1 (một chiều)</text>
+    <rect x="40" y="150" width="400" height="54" rx="12" fill="#fff"/>
+    <text x="60" y="172" fill="#3e5166">SHA-256(Q) → RIPEMD-160 → Base58Check</text>
+    <text x="60" y="192" fill="#0f766e">bc1q…k7f9  · chống nhầm ký tự</text>
+    <rect x="40" y="220" width="400" height="84" rx="12" fill="#34d399"/>
+    <text x="60" y="244" fill="#06302a" font-family="Inter,Arial" font-weight="800">BIP39 · 12/24 từ khôi phục → BIP44 cây HD</text>
+    <text x="60" y="266" fill="#06302a">abandon ability able … about (1 lần sao lưu)</text>
+    <text x="60" y="286" fill="#06302a">đa tài khoản · đa chuỗi coin</text>
+  </g>
+</svg>

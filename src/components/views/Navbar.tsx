@@ -1,82 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { BookOpen, Menu, Presentation, X } from "lucide-react";
 import { useHub, type TabId } from "@/components/app-context";
 
-const TABS: { id: TabId; label: string; hint: string }[] = [
-  { id: "home", label: "Sổ cái", hint: "P1–P9" },
-  { id: "demo", label: "Hàm băm", hint: "P1 · P5" },
-  { id: "mining", label: "Khối & Đào", hint: "P2 · P6 · P7 · P4 · P8" },
-  { id: "rsa", label: "Chữ ký số", hint: "P3" },
-];
+const TABS: TabId[] = ["home", "demo", "mining", "rsa"];
+const SLIDES_URL = process.env.NEXT_PUBLIC_SLIDES_URL ?? "http://localhost:3030";
 
 export function Navbar() {
-  const { tab, setTab } = useHub();
+  const { tab, setTab, t } = useHub();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const go = (id: TabId) => {
-    setMobileOpen(false);
-    setTab(id);
-  };
-
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    menu.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setMobileOpen(false); menuButton.current?.focus(); }
+    };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [mobileOpen]);
+  const go = (id: TabId) => { setMobileOpen(false); setTab(id); };
   return (
-    <nav className="nav" aria-label="Điều hướng chính">
-      <div className="nav-inner">
-        <button className="nav-logo" onClick={() => go("home")} aria-label="Về sổ cái">
-          HubBlock
-          <span className="masthead-sub" style={{ marginLeft: 8 }}>
-            Mô phỏng Blockchain P1–P9
-          </span>
-        </button>
-        <ul className="nav-links">
-          {TABS.map((item) => (
-            <li key={item.id}>
-              <button
-                className={`nav-link ${tab === item.id ? "active" : ""}`}
-                onClick={() => go(item.id)}
-                aria-current={tab === item.id ? "page" : undefined}
-                title={item.hint}
-              >
-                {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <button
-          className="nav-hamburger btn btn-ghost btn-sm"
-          aria-label="Mở menu"
-          aria-expanded={mobileOpen}
-          onClick={() => setMobileOpen((v) => !v)}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 22 22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden
-          >
-            <line x1="2" y1="6" x2="20" y2="6"></line>
-            <line x1="2" y1="11" x2="20" y2="11"></line>
-            <line x1="2" y1="16" x2="20" y2="16"></line>
-          </svg>
-        </button>
-      </div>
-      {mobileOpen && (
-        <div className="nav-mobile open">
-          {TABS.map((item) => (
-            <button
-              key={item.id}
-              className={`nav-mobile-link ${tab === item.id ? "active" : ""}`}
-              onClick={() => go(item.id)}
-            >
-              {item.label} · {item.hint}
-            </button>
-          ))}
+    <>
+      <a href="#main-content" className="skip-link">{t("ui.skip")}</a>
+      <nav className="nav" aria-label={t("ui.navLabel")}>
+        <div className="nav-inner">
+          <button className="nav-logo" onClick={() => go("home")} aria-label={t("ui.backHome")}><BookOpen size={24} strokeWidth={1.5} aria-hidden /><span>HubBlock<span className="brand-hint">{t("ui.brandHint")}</span></span></button>
+          <ul className="nav-links">{TABS.map((id) => <li key={id}><button className={`nav-link ${tab === id ? "active" : ""}`} onClick={() => go(id)} aria-current={tab === id ? "page" : undefined}>{t(`ui.${id}`)}</button></li>)}</ul>
+          <a className="slides-cta" href={SLIDES_URL} target="_blank" rel="noopener noreferrer" aria-label={t("ui.slidesHint")} title={t("ui.slidesHint")}><Presentation size={18} aria-hidden /><span className="slides-cta-label">{t("nav.slides")}</span></a>
+          <button ref={menuButton} className="nav-hamburger btn btn-ghost" aria-label={t(mobileOpen ? "ui.closeMenu" : "ui.openMenu")} aria-expanded={mobileOpen} aria-controls="mobile-navigation" onClick={() => setMobileOpen((value) => !value)}>{mobileOpen ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}</button>
         </div>
-      )}
-    </nav>
+        {mobileOpen && <div id="mobile-navigation" className="nav-mobile open" ref={menu}>{TABS.map((id) => <button key={id} className={`nav-mobile-link ${tab === id ? "active" : ""}`} onClick={() => go(id)} aria-current={tab === id ? "page" : undefined}>{t(`ui.${id}`)}</button>)}</div>}
+      </nav>
+    </>
   );
 }

@@ -8,21 +8,19 @@ import { MiningView } from "@/components/views/MiningView";
 import { RsaView } from "@/components/views/RsaView";
 
 function HubBlockPage() {
-  const { tab } = useHub();
+  const { tab, t } = useHub();
   return (
     <>
       <Navbar />
-      <div className="page">
+      <main id="main-content" tabIndex={-1} className="page">
         {tab === "home" && <HomeView />}
         {tab === "demo" && <HashDemoView />}
         {tab === "mining" && <MiningView />}
         {tab === "rsa" && <RsaView />}
-      </div>
+      </main>
       <footer className="colophon">
-        <span>
-          <strong>HubBlock</strong> — Mô phỏng Blockchain P1–P9 · ĐH Đà Lạt, Khoa CNTT
-        </span>
-        <span>Tầng 1 Mật mã 25% · Tầng 2 Chuỗi khối 30% · Tầng 3 Mạng lưới 25%</span>
+        <span><strong>HubBlock</strong><span className="footer-divider" aria-hidden>/</span>{t("ui.footer")}</span>
+        <span>{t("ui.footerNote")}</span>
       </footer>
     </>
   );

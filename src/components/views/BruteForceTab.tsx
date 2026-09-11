@@ -1,49 +1,11 @@
 "use client";
 
+import { dict } from "@/lib/i18n/dictionary";
+
 import { useEffect, useState } from "react";
+import { HashField, LabNotes, Stamp } from "@/components/lab/lab";
 import { useHub } from "@/components/app-context";
 import { sha256Sync } from "@/lib/crypto/sha256";
-
-const STR = {
-  vi: {
-    title: "Vét cạn mã PIN (Brute-force)",
-    desc: "Máy chủ chỉ lưu mã băm của PIN. Kẻ tấn công không thể đảo ngược hàm băm — chỉ còn cách thử từng PIN từ 000…0 cho đến khi trùng mã băm mục tiêu. Hãy xem chi phí tăng theo từng chữ số.",
-    digits: "Số chữ số PIN",
-    target: "Mã băm mục tiêu (SHA-256 của PIN bí mật)",
-    start: "Tạo PIN mới & Vét cạn",
-    stop: "Dừng",
-    reset: "Đặt lại",
-    tries: "Số lần thử",
-    time: "Thời gian",
-    rate: "PIN/giây",
-    progress: "Tiến trình",
-    current: "Đang thử",
-    found: "Tìm thấy PIN sau",
-    resultPin: "PIN khôi phục",
-    noteTitle: "Vì sao hàm băm được gọi là một chiều?",
-    note: "Mỗi chữ số cộng thêm làm không gian tìm kiếm tăng ×10 lần. PIN 6 số cần tới 1.000.000 lần thử — còn mật khẩu thực tế dài hàng chục ký tự thì vét cạn là bất khả thi. Đó chính là nền tảng bảo mật của SHA-256.",
-    combinations: "tổ hợp",
-  },
-  en: {
-    title: "Brute-forcing a PIN",
-    desc: "The server only stores the PIN's hash. An attacker cannot reverse the hash — the only way is trying every PIN from 000…0 until the target hash matches. Watch the cost grow with each digit.",
-    digits: "PIN digits",
-    target: "Target hash (SHA-256 of the secret PIN)",
-    start: "New PIN & Brute-force",
-    stop: "Stop",
-    reset: "Reset",
-    tries: "Attempts",
-    time: "Time",
-    rate: "PINs/sec",
-    progress: "Progress",
-    current: "Trying",
-    found: "PIN found after",
-    resultPin: "Recovered PIN",
-    noteTitle: "Why is a hash called one-way?",
-    note: "Each extra digit multiplies the search space ×10. A 6-digit PIN needs up to 1,000,000 tries — and real passwords dozens of chars long make brute force infeasible. That is the security foundation of SHA-256.",
-    combinations: "combinations",
-  },
-};
 
 interface Job {
   pin: string;
@@ -51,8 +13,8 @@ interface Job {
 }
 
 export function BruteForceTab() {
-  const { lang } = useHub();
-  const s = STR[lang];
+  const { lang, t } = useHub();
+  const s = dict[lang].bruteforce as Record<string, string>;
   const [digits, setDigits] = useState(4);
   const [job, setJob] = useState<Job | null>(null);
   const [target, setTarget] = useState(() => sha256Sync("2025"));
@@ -78,7 +40,7 @@ export function BruteForceTab() {
         const cand = String(n).padStart(job.digits, "0");
         const h = sha256Sync(cand);
         const now = performance.now();
-        if (now - lastUpdate > 90) {
+        if (now - lastUpdate> 90) {
           lastUpdate = now;
           setGuess(n);
           setGuessHash(h);
@@ -134,61 +96,47 @@ export function BruteForceTab() {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease" }}>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-          🔨 {s.title}
+    <div className="lab-stack">
+      <div className="card">
+        <h3 className="lab-tray-title">
+          {s.title}
         </h3>
-        <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20, lineHeight: 1.8 }}>
+        <p className="lab-tray-desc">
           {s.desc}
         </p>
-        <div className="grid-2" style={{ gap: 24, marginBottom: 20 }}>
+        <div className="grid-2 gap-6 mb-6">
           <div>
             <div className="label">{s.digits}</div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="flex gap-2" role="group" aria-label={s.digits}>
               {[3, 4, 5, 6].map((d) => (
                 <button
                   key={d}
+                  aria-pressed={digits === d}
                   className={`btn btn-sm ${digits === d && !mining ? "btn-primary" : "btn-ghost"}`}
                   disabled={mining}
                   onClick={() => {
                     setDigits(d);
                     reset();
                   }}
-                >
+               >
                   {d}
                 </button>
               ))}
             </div>
-            <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 8 }}>
+            <div className="text-[13px] text-muted-foreground mt-2">
               10<sup>{digits}</sup> = {(10 ** digits).toLocaleString()} {s.combinations}
             </div>
           </div>
           <div>
             <div className="label">{s.target}</div>
-            <div
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: 12,
-                color: "var(--amber)",
-                wordBreak: "break-all",
-                background: "var(--bg1)",
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                padding: "10px 14px",
-              }}
-            >
-              {target.slice(0, 32)}
-              <br />
-              {target.slice(32)}
-            </div>
+            <HashField hash={target} />
           </div>
         </div>
-        <div className="config-actions">
+        <div className="config-actions"><span role="status"><Stamp tone={foundPin !== null ? "valid" : "neutral"}>{t(mining ? "ui.running" : foundPin !== null ? "ui.complete" : tries> 0 ? "ui.stopped" : "ui.ready")}</Stamp></span>
           <button
             className={`btn ${mining ? "btn-stop-mine" : "btn-primary"}`}
             onClick={start}
-          >
+         >
             {mining ? s.stop : s.start}
           </button>
           <button className="btn btn-ghost" disabled={mining} onClick={reset}>
@@ -197,53 +145,35 @@ export function BruteForceTab() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <div className="card">
         <div
-          style={{
-            marginBottom: 8,
-            display: "flex",
-            alignItems: "baseline",
-            gap: 8,
-            flexWrap: "wrap",
-          }}
-        >
-          <span style={{ fontSize: 28, fontWeight: 800, color: "var(--cyan)" }}>
+          className="mb-2 flex items-baseline gap-2 flex-wrap"
+       >
+          <span className="[font-size:28px] font-semibold text-ink">
             {tries.toLocaleString()}
           </span>
-          <span style={{ fontSize: 12, color: "var(--text2)" }}>{s.tries}</span>
+          <span className="text-[13px] text-muted-foreground">{s.tries}</span>
           {foundPin !== null && (
-            <span className="badge badge-green" style={{ marginLeft: 8 }}>
+            <span className="badge badge-green ml-2">
               {s.found} {tries.toLocaleString()} ✓
             </span>
           )}
         </div>
-        <div className="progress-bar" style={{ marginBottom: 16 }}>
-          <div
-            className="progress-fill"
-            style={{ width: `${Math.min(100, (tries / total) * 100)}%` }}
-          ></div>
-        </div>
-        <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 8 }}>
+        <progress className="lab-progress mb-4" value={tries} max={total} aria-label={s.progress} />
+        <div className="text-[13px] text-muted-foreground mb-2">
           {s.progress}: {tries.toLocaleString()} / {total.toLocaleString()} (
           {((tries / total) * 100).toFixed(1)}%)
         </div>
         <div
-          style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            fontSize: 12,
-            color: "var(--text2)",
-            marginBottom: 12,
-          }}
-        >
+          className="flex gap-4 flex-wrap text-[13px] text-muted-foreground mb-4"
+       >
           <span>
             {s.current}:{" "}
-            <span style={{ fontFamily: "var(--mono)", color: "var(--cyan)" }}>
+            <span className="font-mono text-ink">
               {String(guess).padStart(digits, "0")}
             </span>
           </span>
-          <span style={{ fontFamily: "var(--mono)", color: "var(--text3)" }}>
+          <span className="font-mono text-muted-foreground">
             {guessHash.slice(0, 24)}...
           </span>
         </div>
@@ -257,7 +187,7 @@ export function BruteForceTab() {
             <div className="live-stat-label">{s.rate}</div>
           </div>
           <div className="live-stat-card">
-            <div className="live-stat-val" style={{ color: "var(--green)" }}>
+            <div className="live-stat-val text-moss">
               {foundPin ?? "••••"}
             </div>
             <div className="live-stat-label">{s.resultPin}</div>
@@ -265,17 +195,7 @@ export function BruteForceTab() {
         </div>
       </div>
 
-      <div
-        className="card"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(34, 211, 238, 0.04), rgba(59, 130, 246, 0.04))",
-          border: "1px solid rgba(34, 211, 238, 0.15)",
-        }}
-      >
-        <div className="mining-tip-title">{s.noteTitle}</div>
-        <p className="mining-tip-desc">{s.note}</p>
-      </div>
+      <LabNotes title={s.noteTitle}><p>{s.note}</p></LabNotes>
     </div>
   );
 }
