@@ -29,7 +29,7 @@ defaults:
 ---
 
 <CoverSlide
-  badge="BLOCKCHAIN"
+  badge="Giới thiệu sách"
   advisor="Fabian Schär · Aleksander Berentsen"
   :student="['2312702 - Nguyễn Bá Thiều Khôi Nguyên', '2312675 - Hồ Quốc Long']"
 >

@@ -24,7 +24,7 @@ const display = Source_Serif_4({
 export const metadata: Metadata = {
   title: "Blockchain",
   description:
-    "Demonstrate SHA-256 cryptographic hash functions interactively. Fixed-length output, avalanche effect, one-way property. Created for SVNCKH student research competition.",
+    "Demonstrate SHA-256 cryptographic hash functions interactively. Fixed-length output, avalanche effect, one-way property.",
 };
 
 export default function RootLayout({

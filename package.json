@@ -2,7 +2,7 @@
   "name": "blockchain",
   "version": "0.4.0",
   "private": true,
-  "description": "Interactive Blockchain visualization app: SHA-256 demos, mining simulation, Merkle trees and RSA, built with Next.js",
+  "description": "Interactive Blockchain",
   "license": "MIT",
   "keywords": [
     "blockchain",

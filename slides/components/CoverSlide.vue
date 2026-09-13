@@ -112,7 +112,7 @@ defineProps({
 }
 
 .cover-badge {
-  margin-bottom: 18px;
+  margin-bottom: 4px;
 }
 
 .badge-icon {
